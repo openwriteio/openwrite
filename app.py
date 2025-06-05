@@ -5,8 +5,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 import json
 from db import SessionLocal
-from models import User, Blog
+from models import User, Blog, Post
 import bcrypt
+import time
+import bleach
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+start_time = time.time()
 
 load_dotenv()
 
@@ -14,10 +19,34 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 
 
 app = Flask(__name__, template_folder='%s/templates' % pwd)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.secret_key = os.getenv("SECRET_KEY")
+version = "0.1"
 
 with open("i18n.json", "r", encoding="utf-8") as f:
     translations = json.load(f)
+
+def sanitize_html(content):
+    allowed_tags = [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p', 'br', 'hr',
+        'strong', 'b', 'em', 'i', 'u',
+        'ul', 'ol', 'li',
+        'a', 'img',
+        'code', 'pre',
+        'blockquote',
+        'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'
+    ]
+
+    allowed_attrs = {
+        'a': ['href', 'title', 'rel'],
+        'img': ['src', 'alt', 'title'],
+        'th': ['align'],
+        'td': ['align'],
+    }
+
+    cleaned_html = bleach.clean(content, tags=allowed_tags, attributes=allowed_attrs)
+    return cleaned_html
 
 def get_current_lang():
     lang = request.cookies.get("lang")
@@ -79,6 +108,13 @@ def set_lang(lang_code):
     resp = make_response(redirect(request.referrer or "/"))
     resp.set_cookie("lang", lang_code, max_age=60*60*24*365)
     return resp
+
+# DO NOT remove this code!
+@app.route('/.well-known/openwrite')
+def show_instance():
+    blog_count = g.db.query(Blog).count()
+    user_count = g.db.query(User).count()
+    return {"openwrite version": version, "blogs_running": blog_count, "users": user_count, "uptime": (time.time() - start_time) }
 
 @app.route("/")
 def index():
@@ -176,15 +212,76 @@ def delete_blog(name):
     
     blog = g.db.query(Blog).filter_by(name=name).first()
     if blog is None:
-        return render_template("dashboard.html", error="No such blog!")
+        return redirect("/dashboard")
 
     if blog.owner != g.user:
-        return render_template("dashboard.html", error="This blog is not yours!")
+        return redirect("/dashboard")
 
     g.db.delete(blog)
     g.db.commit()
     return redirect("/dashboard")
+
+@app.route("/dashboard/edit/<name>")
+def edit_blog(name):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=name).first()
+    if blog is None:
+        return redirect("/dashboard")
+
+    if blog.owner != g.user:
+        return redirect("/dashboard")
+
+    posts = g.db.query(Post).filter_by(blog=blog.id).all()
+
+    return render_template("edit.html", blog=blog, posts=posts)
+
+@app.route("/dashboard/post/<name>", methods=['GET', 'POST'])
+def new_post(name):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=name).first()
+    if blog is None:
+        return redirect("/dashboard")
+
+    if blog.owner != g.user:
+        return redirect("/dashboard")
+
+    if request.method == "GET":
+       return render_template("new_post.html", blog=blog)
+    elif request.method == "POST":
+        u = g.db.query(User).filter_by(id=g.user).first()
+        data = {}
+        data['title'] = request.form.get('title')
+        data['content'] = sanitize_html(request.form.get('content'))
+        data['content_raw'] = request.form.get('content_raw')
+        data['author'] = request.form.get('author')
+
+        new_post = Post(blog=blog.id, title=data['title'], content_raw=data['content_raw'], content_html=data['content'], author=data['author'])
+        g.db.add(new_post)
+        g.db.commit()
+
+        return redirect('/dashboard/edit/' + blog.name)
+   
     
+@app.route("/dashboard/preview", methods=['POST'])
+def preview():
+    if g.user is None:
+        return redirect("/login")
+
+    u = g.db.query(User).filter_by(id=g.user).first()
+    data = {}
+    data['title'] = request.form.get('title')
+    data['content'] = sanitize_html(request.form.get('content'))
+    data['author'] = request.form.get('author')
+    data['blog_title'] = request.form.get('blog_title')
+    data['blog_name'] = request.form.get('blog_name')
+    data['date'] = request.form.get('date')
+    data['author_name'] = u.username
+    return render_template("preview.html", data=data)
+
 
 if __name__ == "__main__":
 	app.config['TEMPLATES_AUTO_RELOAD'] = True

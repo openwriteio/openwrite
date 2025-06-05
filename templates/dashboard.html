@@ -7,7 +7,7 @@
 <span class="bloginfo">Title: {{ blog.title }}</span>
 <span class="bloginfo">URL: {% if blog.access == "path" %} http://{{ g.main_domain }}/b/{{ blog.name }} {% else %} http://{{ blog.name }}.{{ g.main_domain }}/ {% endif %}</span>
 <div style="display:flex; gap: 1rem; margin-top: 1rem">
-<a href="/dashboard/posts/{{ blog.name }}" class="btn empty">Show posts</a>
+<a href="/dashboard/edit/{{ blog.name }}" class="btn empty">Show</a>
 <a href="/dashboard/post/{{ blog.name }}" class="btn purple">New post</a>
 <a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('Are you sure to delete blog {{ blog.name }}?\nThis action cannot be reverted.')">Delete blog</a>
 </div>

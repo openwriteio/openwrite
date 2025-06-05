@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Date, Text
+from sqlalchemy.sql import func
 from db import Base
 
 class User(Base):
@@ -18,3 +19,14 @@ class Blog(Base):
     title = Column(String(64), nullable=False)
     index = Column(String(10), nullable=False)
     access = Column(String(10), nullable=False)
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True)
+    blog = Column(Integer, nullable=False)
+    title = Column(String(128), nullable=False)
+    date = Column(Date, default=func.current_date())
+    content_raw = Column(Text, nullable=False)
+    content_html = Column(Text, nullable=False)
+    author = Column(String(10), nullable=False)

@@ -1,0 +1,99 @@
+{% include 'header.html' %}
+<div class="container-row-fluid">
+    <h3>new post on blog: {{ blog.name }}</h3>
+    <a target="_blank" href="/dashboard/preview" class="btn purple" id="preview">Preview</a>
+</div>
+<article class="main-content">
+<form method="post" action="/dashboard/post/{{ blog.name }}">
+    <input type="text" name="title" placeholder="title" style="max-width: 100%; height: 50px; font-size: 25px">
+    <textarea name="content" class="post_content" placeholder="content"></textarea>
+    <div style="display: flex; gap: 0.5rem;">
+    <input type="checkbox" id="author" checked="true">
+    <label for="author">Include author information(username) in post?</label>
+    </div>
+    <input type="submit" value="Post" class="btn purple" id="submit">
+</form>
+</article>
+<script>
+    var converter = new showdown.Converter();
+    converter.setOption('emoji', true);
+    converter.setOption('noHeaderId', true);
+    converter.setOption('openLinksInNewWindow', true);
+    converter.setOption('tables', true);
+    converter.setOption('tasklists', true);
+
+    document.getElementById('preview').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const form = document.querySelector('form');
+        const title = form.querySelector('input[name="title"]').value;
+        const content_raw = form.querySelector('textarea[name="content"]').value;
+        const author = form.querySelector("#author").checked;
+
+        const content = converter.makeHtml(content_raw);
+
+        const tempForm = document.createElement('form');
+        tempForm.method = 'POST';
+        tempForm.action = '/dashboard/preview';
+        tempForm.target = '_blank';
+        const date = new Date();
+        const inputs = {
+            title: title,
+            content: content,
+            author: author ? '1' : '0',
+            blog_name: "{{ blog.name }}",
+            blog_title: "{{ blog.title }}",
+            date: date.toLocaleDateString()
+        };
+
+        for (let key in inputs) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = inputs[key];
+            tempForm.appendChild(input);
+        }
+
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+    });
+
+    document.getElementById('submit').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const form = document.querySelector('form');
+        const title = form.querySelector('input[name="title"]').value;
+        const content_raw = form.querySelector('textarea[name="content"]').value;
+        const author = form.querySelector("#author").checked;
+
+        const content = converter.makeHtml(content_raw);
+
+        const tempForm = document.createElement('form');
+        tempForm.method = 'POST';
+        tempForm.action = '/dashboard/post/{{ blog.name }}';
+        const date = new Date();
+        const inputs = {
+            title: title,
+            content_raw: content_raw,
+            content: content,
+            author: author ? '1' : '0'
+        };
+
+        for (let key in inputs) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = inputs[key];
+            tempForm.appendChild(input);
+        }
+
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+    });
+
+
+
+</script>
+{% include 'footer.html' %}

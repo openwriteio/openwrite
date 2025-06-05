@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ data.title }} | {{ data.blog_title }}</title>
+    <meta name="description" content="Minimalist, opensource blog. Write, freely.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="blog-name">{{ data.blog_title }}</h1>
+            <div id="menu">
+                <a href="#">Home</a>
+                <a href="#">Blog</a>
+            </div>
+        </header>
+        <article class="main-content">
+            <h1 class="post-title">{{ data.title }}</h1>
+            <i class="post-date">{{ data.date }} {% if data.author | int > 0 %} by {{ data.author_name }} {% endif %}</i>
+            <article class="post-content">
+                {{ data.content | safe }}
+            </article>
+        </article>
+    </div>
+</body>
+</html>

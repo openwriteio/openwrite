@@ -1,0 +1,18 @@
+{% include 'header.html' %}
+<h1 class="centered">blog: {{ blog.name }}</h1>
+<div class="bloginfo">
+<span class="bloginfo">Title: {{ blog.title }}</span>
+<span class="bloginfo">URL: {% if blog.access == "path" %} http://{{ g.main_domain }}/b/{{ blog.name }} {% else %} http://{{ blog.name }}.{{ g.main_domain }}/ {% endif %}</span>
+<span class="bloginfo">Posts:</span>
+<table class="posts" border="1">
+<thead>
+    <th width="30%">Date</th><th>Title</th>
+</thead>
+<tbody>
+{% for post in posts %}
+    <td>{{ post.date }}</td><td>{{ post.title }}</td>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% include 'footer.html' %}
