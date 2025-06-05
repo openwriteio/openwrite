@@ -8,3 +8,13 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     email = Column(String(120), nullable=True)
+
+class Blog(Base):
+    __tablename__ = "blogs"
+
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, nullable=False)
+    name = Column(String(64), nullable=False)
+    title = Column(String(64), nullable=False)
+    index = Column(String(10), nullable=False)
+    access = Column(String(10), nullable=False)

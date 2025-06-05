@@ -1,0 +1,27 @@
+{% include 'header.html' %}
+<h1 class="centered">create a new blog</h1>
+<article class="main-content">
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/dashboard/create">
+        <span class="form-field">Choose blog name:</span>
+        <input type="text" name="name" style="max-width: 350px" placeholder="blog-name" required>
+        <span class="form-field" style="margin-top: 2rem;">How would you like to access your blog?</span>
+        <div class="horizontal-fields">
+            <input type="radio" id="domain" name="access" value="domain">
+            <label for="domain">Domain name: <i>blog-name.{{ g.main_domain }}</i></label>
+        </div>
+        <div class="horizontal-fields">
+            <input type="radio" id="path" name="access" value="path" checked>
+            <label for="path">Path: <i>{{ g.main_domain }}/b/blog-name</i></label>
+        </div>
+        <div class="horizontal-fields" style="margin-top: 2rem;">
+            <input type="checkbox" name="index" id="index">
+            <label for="index">Index your blog in search engines?</label>
+        </div>
+        <input type="submit" value="Create" class="btn purple">
+    </form>
+</article>
+{% include 'footer.html' %}

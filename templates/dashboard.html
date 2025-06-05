@@ -1,3 +1,19 @@
 {% include 'header.html' %}
-dashboard
+<h1 class="centered">your blogs</h1>
+<h2>{{ blogs | count }}/{{ g.blog_limit }}</h2>
+{% for blog in blogs %}
+<div class="bloginfo">
+<h2><b>{{ blog.name }}</b></h2>
+<span class="bloginfo">Title: {{ blog.title }}</span>
+<span class="bloginfo">URL: {% if blog.access == "path" %} http://{{ g.main_domain }}/b/{{ blog.name }} {% else %} http://{{ blog.name }}.{{ g.main_domain }}/ {% endif %}</span>
+<div style="display:flex; gap: 1rem; margin-top: 1rem">
+<a href="/dashboard/posts/{{ blog.name }}" class="btn empty">Show posts</a>
+<a href="/dashboard/post/{{ blog.name }}" class="btn purple">New post</a>
+<a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('Are you sure to delete blog {{ blog.name }}?\nThis action cannot be reverted.')">Delete blog</a>
+</div>
+</div>
+{% endfor %}
+{% if blogs | count < g.blog_limit | int %}
+<a href="/dashboard/create" class="btn purple" style="margin-top: 2rem;">Create new blog</a>
+{% endif %} 
 {% include 'footer.html' %}

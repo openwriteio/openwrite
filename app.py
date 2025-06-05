@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 import json
 from db import SessionLocal
-from models import User
+from models import User, Blog
 import bcrypt
 
 load_dotenv()
@@ -53,6 +53,8 @@ def init_data():
     g.trans = translations[lang]
     g.lang = lang
     g.db = SessionLocal()
+    g.main_domain = os.getenv("DOMAIN")
+    g.blog_limit = os.getenv("BLOG_LIMIT")
 
     if session.get("userid") is not None:
         g.user = session.get("userid")
@@ -105,7 +107,7 @@ def register():
             g.db.add(new_user)
             g.db.commit()
             return render_template("register.html", message=g.trans["registered"])
-        except SQLAlchemError as e:
+        except SQLAlchemyError as e:
             g.db.rollback()
             return render_template('register.html', error=g.trans["error"])
 
@@ -136,7 +138,53 @@ def dashboard():
     if g.user is None:
         return redirect("/login")
 
-    return render_template("dashboard.html")
+    user_blogs = g.db.query(Blog).filter_by(owner=g.user).all()
+
+    return render_template("dashboard.html", blogs=user_blogs)
+
+@app.route("/dashboard/create", methods=['GET', 'POST'])
+def create_blog():
+    if g.user is None:
+        return redirect("/login")
+    count = g.db.query(Blog).filter_by(owner=g.user).count()
+    if count >= int(g.blog_limit):
+        return redirect("/dashboard")
+    if request.method == "GET":
+        return render_template("create.html")
+    elif request.method == "POST":
+        form_name = request.form.get("name")
+        blog = g.db.query(Blog).filter_by(name=form_name).first()
+        if blog:
+            return render_template("create.html", error="This name already exists!")
+        
+        form_index = request.form.get("index")
+        if form_index is None:
+            form_index = "off"
+        form_access = request.form.get("access")
+        try:
+            new_blog = Blog(owner=g.user, title=form_name, name=form_name, index=form_index, access=form_access)
+            g.db.add(new_blog)
+            g.db.commit()
+            return redirect("/dashboard")
+        except Exception as e:
+            return render_template("create.html", error=g.trans['error'])
+
+@app.route("/dashboard/delete/<name>")
+def delete_blog(name):
+    if g.user is None:
+        return redirect("/login")
+    
+    blog = g.db.query(Blog).filter_by(name=name).first()
+    if blog is None:
+        return render_template("dashboard.html", error="No such blog!")
+
+    if blog.owner != g.user:
+        return render_template("dashboard.html", error="This blog is not yours!")
+
+    g.db.delete(blog)
+    g.db.commit()
+    return redirect("/dashboard")
+    
 
 if __name__ == "__main__":
 	app.config['TEMPLATES_AUTO_RELOAD'] = True

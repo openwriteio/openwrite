@@ -179,6 +179,14 @@ a.btn.empty:hover {
     color: #fff;
 }
 
+a.btn.red {
+    background: #B32D2D;
+    color: #fffbfb;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+}
+
 footer.footer {
     display: flex;
     justify-content: center;
@@ -261,4 +269,26 @@ div.message {
     border-radius: 8px;
     border: 1px solid #0b1a46;
     color: #fff;
+}
+
+form input[type=radio], form input[type=checkbox] {
+    height: 20px;
+}
+
+div.horizontal-fields {
+    max-height: 30px;
+}
+
+div.bloginfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    border-bottom: 1px solid #3333333b;
+    padding: 1.5rem;
+}
+
+span.bloginfo {
+    font-size: 20px;
+    font-family: "IBMSansPlex";
 }
