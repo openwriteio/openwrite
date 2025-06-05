@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>openwrite</title>
+    <meta name="description" content="Minimalist, opensource blog. Write, freely.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="/"><div id="logo"> </div></a>
+            <div id="menu">
+                <a href="#">{{ g.trans["instances"] }}</a>
+                <a href="#">{{ g.trans["hosting"] }}</a>
+                {% if g.user %}
+                <a href="/logout">{{ g.trans["logout"] }}</a>
+                {% else %}
+                <a href="/register">{{ g.trans["register"] }}</a>
+                <a href="/login">{{ g.trans["login"] }}</a>
+                {% endif %}
+            </div>
+        </header>
+        <main class="content">

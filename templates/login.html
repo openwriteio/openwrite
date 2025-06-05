@@ -1,0 +1,18 @@
+{% include 'header.html' %}
+
+<h1 class="centered">Login</h1>
+
+<article class="main-content">
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/login">
+        <span class="form-field">{{ g.trans["username"] }}:</span>
+        <input type="text" name="username">       
+        <span class="form-field">{{ g.trans["password"] }}:</span>
+        <input type="password" name="password">
+        <input type="submit" name="sub" value="Login" class="btn purple" style="margin-top: 1rem;">
+    </form>
+</article>
+
+{% include 'footer.html' %}

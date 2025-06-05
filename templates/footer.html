@@ -1,0 +1,15 @@
+        </main>
+        <footer class="footer">
+            <a href="#">Github</a>
+            <a href="#">Dockerhub</a>
+            <a href="#">{{ g.trans["buy_coffee"] }}</a>
+            <p>{{ g.trans["language"] }}: </p>
+            <select name="lang" onchange="location = '/set-lang/' + this.value">
+                {% for code in available_languages.keys() %}
+                <option value="{{ code }}" {% if code == current_lang %} selected {% endif %}>{{ available_languages[code].flag }} {{ available_languages[code].name }}</option>
+                {% endfor %}
+            </select>
+        </footer>
+    </div>
+</body>
+</html>
