@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, g, redirect, make_response, session
+from flask import Flask, render_template, request, g, redirect, make_response, session, jsonify
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -10,6 +10,10 @@ import bcrypt
 import time
 import bleach
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import secure_filename
+import requests
+from PIL import Image
+import hashlib
 
 start_time = time.time()
 
@@ -21,6 +25,11 @@ pwd = os.path.dirname(os.path.realpath(__file__))
 app = Flask(__name__, template_folder='%s/templates' % pwd)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.secret_key = os.getenv("SECRET_KEY")
+UPLOAD_ENABLED = os.getenv("MEDIA_UPLOAD", "no") == "yes"
+STORAGE_BACKEND = os.getenv("UPLOAD_STORAGE", "local")
+BUNNY_API_KEY = os.getenv("BUNNY_API_KEY")
+BUNNY_ZONE = os.getenv("BUNNY_STORAGE_ZONE")
+BUNNY_URL = os.getenv("BUNNY_STORAGE_URL")
 version = "0.1"
 
 with open("i18n.json", "r", encoding="utf-8") as f:
@@ -33,7 +42,7 @@ def sanitize_html(content):
         'strong', 'b', 'em', 'i', 'u',
         'ul', 'ol', 'li',
         'a', 'img',
-        'code', 'pre',
+        'code', 'pre', 'del',
         'blockquote',
         'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'
     ]
@@ -84,6 +93,7 @@ def init_data():
     g.db = SessionLocal()
     g.main_domain = os.getenv("DOMAIN")
     g.blog_limit = os.getenv("BLOG_LIMIT")
+    g.upload_enabled = UPLOAD_ENABLED
 
     if session.get("userid") is not None:
         g.user = session.get("userid")
@@ -115,6 +125,65 @@ def show_instance():
     blog_count = g.db.query(Blog).count()
     user_count = g.db.query(User).count()
     return {"openwrite version": version, "blogs_running": blog_count, "users": user_count, "uptime": (time.time() - start_time) }
+
+
+@app.route("/upload_image", methods=["POST"])
+def upload_image():
+    if not UPLOAD_ENABLED:
+        return jsonify({"error": "Uploads disabled"}), 403
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No file"}), 400
+
+    if g.user is None:
+        return jsonify({"error": "unauthorized"}), 403
+
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+    user = g.db.query(User).filter_by(id=g.user).first()
+
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    extension = filename.rsplit('.')[1].lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        return jsonify({"error": "Unsupported file type. Image only."}), 400
+
+    try:
+        img = Image.open(file.stream)
+        img.verify()
+    except Exception:
+        return jsonify({"error": "Uploaded image is not a valid image."}), 400
+
+    file.stream.seek(0)
+
+    m = hashlib.md5()
+    m.update(filename.encode() + user.username.encode())
+
+    filename = user.username + "_" + m.hexdigest() + "." + extension
+
+    if STORAGE_BACKEND == "bunny":
+        url = f"https://storage.bunnycdn.com/{BUNNY_ZONE}/{filename}"
+        print(url)
+        headers = {
+            "AccessKey": BUNNY_API_KEY,
+            "Content-Type": "application/octet-stream",
+            "accept": "application/json"
+        }
+        response = requests.put(url, headers=headers, data=file)
+        if response.ok:
+            return jsonify({"url": f"{BUNNY_URL}{filename}"})
+        else:
+            return jsonify({"error": "Bunny upload failed", "detail": response.text}), 500
+
+    elif STORAGE_BACKEND == "local":
+        os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
+        filepath = os.path.join(LOCAL_UPLOAD_DIR, filename)
+        file.save(filepath)
+        return jsonify({"url": f"/{LOCAL_UPLOAD_DIR}/{filename}"})
+
+    else:
+        return jsonify({"error": "Invalid storage backend"}), 500
 
 @app.route("/")
 def index():

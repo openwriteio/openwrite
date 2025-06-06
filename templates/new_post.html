@@ -5,11 +5,28 @@
 </div>
 <article class="main-content">
 <form method="post" action="/dashboard/post/{{ blog.name }}">
-    <input type="text" name="title" placeholder="title" style="max-width: 100%; height: 50px; font-size: 25px">
-    <textarea name="content" class="post_content" placeholder="content"></textarea>
-    <div style="display: flex; gap: 0.5rem;">
-    <input type="checkbox" id="author" checked="true">
-    <label for="author">Include author information(username) in post?</label>
+    <input type="text" name="title" placeholder="title" style="max-width: 100%; height: 50px; font-size: 25px; margin-bottom: 1rem;">
+    <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
+        <a href="#" class="small btn empty" data-action="h1">H1</a>
+        <a href="#" class="small btn empty" data-action="h2">H2</a>
+        <a href="#" class="small btn empty" data-action="h3">H3</a>
+        <a href="#" class="small btn empty" data-action="bold"><b>B</b></a>
+        <a href="#" class="small btn empty" data-action="italic"><i>I</i></a>
+        <a href="#" class="small btn empty" data-action="underline"><u>U</u></a>
+        <a href="#" class="small btn empty" data-action="strikethrough"><del>C</del></a>
+        <a href="#" class="small btn empty" data-action="quote">Q</a>
+        <a href="https://www.markdownguide.org/basic-syntax/" style="text-decoration: none; color: #eeeeee; margin-left: auto" target="_blank">Markdown syntax</a>
+    </div>
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content"></textarea>
+    <div style="display: flex; justify-content: space-between">
+        <div style="display: flex; gap: 0.5rem;">
+           <input type="checkbox" id="author" checked="true">
+           <label for="author" style="text-align: left">Include author information(username) in post?</label>
+        </div>
+        {% if g.upload_enabled %}
+        <a href="#" id="uploadLink" class="btn empty">📎 Upload image</a>
+        <input type="file" id="fileInput" style="display: none;">
+        {% endif %}
     </div>
     <input type="submit" value="Post" class="btn purple" id="submit">
 </form>
@@ -21,6 +38,7 @@
     converter.setOption('openLinksInNewWindow', true);
     converter.setOption('tables', true);
     converter.setOption('tasklists', true);
+    converter.setOption('strikethrough', true);
 
     document.getElementById('preview').addEventListener('click', function(e) {
         e.preventDefault();
@@ -93,7 +111,86 @@
         document.body.removeChild(tempForm);
     });
 
+    const editor = document.querySelector('textarea[name="content"]');
+    const uploadLink = document.getElementById("uploadLink");
+    const fileInput = document.getElementById("fileInput");
 
+    uploadLink.addEventListener("click", function(e) {
+      e.preventDefault(); 
+      fileInput.click(); 
+    });
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const cursorPos = editor.selectionStart;
+
+      try {
+        const res = await fetch("/upload_image", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Upload failed");
+
+        const markdown = `![alt text](${data.url})`;
+
+        const text = editor.value;
+        editor.value = text.slice(0, cursorPos) + markdown + text.slice(cursorPos);
+        editor.selectionStart = editor.selectionEnd = cursorPos + markdown.length;
+        editor.focus();
+
+      } catch (err) {
+        alert("Upload failed: " + err.message);
+      } finally {
+        fileInput.value = ""; 
+      }
+    });
+
+document.querySelectorAll('[data-action]').forEach(btn => {
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    const action = this.getAttribute('data-action');
+
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const selected = editor.value.slice(start, end);
+
+    let modified = selected;
+    switch (action) {
+      case "bold":
+        modified = `**${selected}**`;
+        break;
+      case "italic":
+        modified = `*${selected}*`;
+        break;
+      case "underline":
+        modified = `<u>${selected}</u>`; 
+        break;
+      case "strikethrough":
+        modified = `~~${selected}~~`;
+        break;
+      case "quote":
+        modified = selected.split("\n").map(line => `> ${line}`).join("\n");
+        break;
+      case "h1":
+        modified = `# ${selected}`;
+        break;
+      case "h2":
+        modified = `## ${selected}`;
+        break;
+      case "h3":
+        modified = `### ${selected}`;
+        break;
+    }
+
+    editor.setRangeText(modified, start, end, "end");
+    editor.focus();
+  });
+});
 
 </script>
 {% include 'footer.html' %}

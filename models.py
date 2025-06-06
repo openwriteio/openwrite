@@ -26,6 +26,7 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     blog = Column(Integer, nullable=False)
     title = Column(String(128), nullable=False)
+    link = Column(String(64), nullable=False)
     date = Column(Date, default=func.current_date())
     content_raw = Column(Text, nullable=False)
     content_html = Column(Text, nullable=False)

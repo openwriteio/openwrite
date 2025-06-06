@@ -2,7 +2,7 @@
         <footer class="footer">
             <a href="https://github.com/openwriteio/openwrite/">Github</a>
             <a href="https://hub.docker.com/r/openwrite/openwrite">Dockerhub</a>
-            <a href="#">{{ g.trans["buy_coffee"] }}</a>
+            <a href="https://ko-fi.com/openwrite">{{ g.trans["buy_coffee"] }}</a>
             <p>{{ g.trans["language"] }}: </p>
             <select name="lang" onchange="location = '/set-lang/' + this.value">
                 {% for code in available_languages.keys() %}

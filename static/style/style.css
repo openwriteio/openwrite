@@ -349,6 +349,10 @@ article.post-content h1 {
     font-size: 30px;
 }
 
+article.post-content h1, article.post-content h2, article.post-content h3 {
+    margin-top 1rem;
+}
+
 article.post-content blockquote {
     color: #888;
     margin-left: 2rem;
@@ -364,4 +368,14 @@ article.post-content a {
 
 article.post-content a:hover {
     text-decoration: underline;
+}
+
+article.post-content ol, article.post-content ul, article.post-content img {
+    padding-left: 2.5rem;
+    max-width: 90%;
+}
+
+.small.btn {
+    max-width: 30px;
+    max-height: 30px;
 }
