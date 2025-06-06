@@ -350,7 +350,7 @@ article.post-content h1 {
 }
 
 article.post-content h1, article.post-content h2, article.post-content h3 {
-    margin-top 1rem;
+    margin-top: 1.5rem;
 }
 
 article.post-content blockquote {

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ blog.title }}</title>
+    <meta name="description" content="Minimalist, opensource blog. Write, freely.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="blog-name">{{ blog.title }}</h1>
+            <div id="menu">
+                <a href="#">Home</a>
+                <a href="#">Blog</a>
+            </div>
+        </header>
+        <article class="main-content">
+            <article class="post-content">
+                {{ blog.description_html | safe }}
+            </article>
+        </article>
+    </div>
+</body>
+</html>

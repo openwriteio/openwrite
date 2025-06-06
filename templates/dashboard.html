@@ -5,9 +5,9 @@
 <div class="bloginfo">
 <h2><b>{{ blog.name }}</b></h2>
 <span class="bloginfo">Title: {{ blog.title }}</span>
-<span class="bloginfo">URL: {% if blog.access == "path" %} http://{{ g.main_domain }}/b/{{ blog.name }} {% else %} http://{{ blog.name }}.{{ g.main_domain }}/ {% endif %}</span>
+<span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span>
 <div style="display:flex; gap: 1rem; margin-top: 1rem">
-<a href="/dashboard/edit/{{ blog.name }}" class="btn empty">Show</a>
+<a href="/dashboard/edit/{{ blog.name }}" class="btn empty">Edit</a>
 <a href="/dashboard/post/{{ blog.name }}" class="btn purple">New post</a>
 <a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('Are you sure to delete blog {{ blog.name }}?\nThis action cannot be reverted.')">Delete blog</a>
 </div>

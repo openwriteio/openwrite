@@ -2,7 +2,19 @@
 <h1 class="centered">blog: {{ blog.name }}</h1>
 <div class="bloginfo">
 <span class="bloginfo">Title: {{ blog.title }}</span>
-<span class="bloginfo">URL: {% if blog.access == "path" %} http://{{ g.main_domain }}/b/{{ blog.name }} {% else %} http://{{ blog.name }}.{{ g.main_domain }}/ {% endif %}</span>
+<span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span>
+<span class="bloginfo">Description(Markdown): </span>
+<form method="post" action="/dashboard/edit/{{ blog.name }}">
+<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content" style="min-height: 200px; margin-bottom: 1rem; width: 100%">{{ blog.description_raw }}</textarea>
+<div style="display: flex; justify-content: space-between">
+    <input type="submit" id="submit" value="Save" class="btn purple">
+    {% if g.upload_enabled %}
+    <a href="#" id="uploadLink" class="btn empty">📎 Upload image</a>
+    <input type="file" id="fileInput" style="display: none;">
+    {% endif %}
+</div>
+</form>
+
 <span class="bloginfo">Posts:</span>
 <table class="posts" border="1">
 <thead>
@@ -15,4 +27,83 @@
 </tbody>
 </table>
 </div>
+<script>
+        var converter = new showdown.Converter();
+    converter.setOption('emoji', true);
+    converter.setOption('noHeaderId', true);
+    converter.setOption('openLinksInNewWindow', true);
+    converter.setOption('tables', true);
+    converter.setOption('tasklists', true);
+    converter.setOption('strikethrough', true);
+    converter.setOption('parseImgDimensions', true);
+
+    document.getElementById('submit').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const form = document.querySelector('form');
+        const description_raw = form.querySelector('textarea[name="content"]').value;
+
+        const description_html = converter.makeHtml(description_raw);
+
+        const tempForm = document.createElement('form');
+        tempForm.method = 'POST';
+        tempForm.action = '/dashboard/edit/{{ blog.name }}';
+        const date = new Date();
+        const inputs = {
+            description_raw: description_raw,
+            description_html: description_html
+        };
+
+        for (let key in inputs) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = inputs[key];
+            tempForm.appendChild(input);
+        }
+
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+    });
+
+   const editor = document.querySelector('textarea[name="content"]');
+    const uploadLink = document.getElementById("uploadLink");
+    const fileInput = document.getElementById("fileInput");
+
+    uploadLink.addEventListener("click", function(e) {
+      e.preventDefault(); 
+      fileInput.click(); 
+    });
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const cursorPos = editor.selectionStart;
+
+      try {
+        const res = await fetch("/upload_image", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Upload failed");
+
+        const markdown = `![alt text](${data.url})`;
+
+        const text = editor.value;
+        editor.value = text.slice(0, cursorPos) + markdown + text.slice(cursorPos);
+        editor.selectionStart = editor.selectionEnd = cursorPos + markdown.length;
+        editor.focus();
+
+      } catch (err) {
+        alert("Upload failed: " + err.message);
+      } finally {
+        fileInput.value = ""; 
+      }
+    });
+</script>
 {% include 'footer.html' %}

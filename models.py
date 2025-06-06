@@ -19,6 +19,8 @@ class Blog(Base):
     title = Column(String(64), nullable=False)
     index = Column(String(10), nullable=False)
     access = Column(String(10), nullable=False)
+    description_raw = Column(Text, nullable=False)
+    description_html = Column(Text, nullable=False)
 
 class Post(Base):
     __tablename__ = "posts"
