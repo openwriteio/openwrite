@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, g, redirect, make_response, session, jsonify
+from flask import Flask, render_template, request, g, redirect, make_response, session, jsonify, Response
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -16,6 +16,8 @@ from PIL import Image
 import hashlib
 import re
 import unicodedata
+from flask_cors import CORS
+from feedgen.feed import FeedGenerator
 
 start_time = time.time()
 
@@ -24,7 +26,7 @@ load_dotenv()
 pwd = os.path.dirname(os.path.realpath(__file__))
 
 
-app = Flask(__name__, template_folder='%s/templates' % pwd, subdomain_matching=True)
+app = Flask(__name__, template_folder='%s/templates' % pwd, subdomain_matching=True, static_url_path='/static')
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config['SERVER_NAME'] = os.getenv("DOMAIN")
@@ -264,16 +266,17 @@ def create_blog():
         return render_template("create.html")
     elif request.method == "POST":
         form_name = request.form.get("name")
-        blog = g.db.query(Blog).filter_by(name=form_name).first()
+        form_url = gen_link(request.form.get("url"))
+        blog = g.db.query(Blog).filter_by(name=form_url).first()
         if blog:
-            return render_template("create.html", error="This name already exists!")
+            return render_template("create.html", error="This URL already exists!")
         
         form_index = request.form.get("index")
         if form_index is None:
             form_index = "off"
         form_access = request.form.get("access")
         try:
-            new_blog = Blog(owner=g.user, title=form_name, name=form_name, index=form_index, access=form_access, description_raw="# my new awesome blog on " + os.getenv("DOMAIN") + "\n![alt text](https://naszkawalekswiata.pl/wp-content/uploads/2021/07/seljalandsfoss-7-473x630.jpg)", description_html="<h1>my new awesome blog on " + os.getenv("DOMAIN") + "</h1><img src=\"https://naszkawalekswiata.pl/wp-content/uploads/2021/07/seljalandsfoss-7-473x630.jpg\" width=\"500\" height=\"auto\" alt=\"alt text\">")
+            new_blog = Blog(owner=g.user, title=form_name, name=form_url, index=form_index, access=form_access, description_raw="![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nThis is your blog’s description. You can update it in the dashboard whenever you like.\nWrite a few words about yourself, your interests, or what readers can expect to find here.", description_html="<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\" alt=\"hello\"></p><h1>Hello there! 👋</h1><p>This is your blog’s description. You can update it in the dashboard whenever you like. Write a few words about yourself, your interests, or what readers can expect to find here.</p>")
             g.db.add(new_blog)
             g.db.commit()
             return redirect("/dashboard")
@@ -315,8 +318,10 @@ def edit_blog(name):
     elif request.method == "POST":
         description_raw = request.form.get("description_raw")
         description_html = sanitize_html(request.form.get("description_html"))
+        title = request.form.get("title")
         blog.description_raw = description_raw
         blog.description_html = description_html
+        blog.title = title
         g.db.commit()
 
         return render_template("edit.html", blog=blog, posts=posts)
@@ -343,7 +348,9 @@ def new_post(name):
         data['content_raw'] = request.form.get('content_raw')
         data['author'] = request.form.get('author')
         data['link'] = gen_link(data['title'])
-        p = g.db.query(Post).filter(Post.link == data['link'], Post.blog == blog.id).count()
+        if data['link'] == "rss":
+            data['link'] = "p_rss"
+        p = g.db.query(Post).filter(Post.link.startswith(data['link']), Post.blog == blog.id).count()
         if p > 0:
             data['link'] = data['link'] + "-" + str(p + 1)
         
@@ -371,6 +378,70 @@ def preview():
     data['author_name'] = u.username
     return render_template("preview.html", data=data)
 
+@app.route("/dashboard/edit/<blog>/<post>", methods=['GET', 'POST'])
+def edit_post(blog, post):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=blog).first()
+    if blog is None:
+        return redirect("/dashboard")
+
+    if blog.owner != g.user:
+        return redirect("/dashboard")
+
+    e_post = g.db.query(Post).filter_by(link=post).first()
+
+    if request.method == "GET":
+       return render_template("new_post.html", blog=blog, post=e_post)
+    elif request.method == "POST":
+        u = g.db.query(User).filter_by(id=g.user).first()
+        data = {}
+        data['title'] = request.form.get('title')
+        data['content'] = sanitize_html(request.form.get('content'))
+        data['content_raw'] = request.form.get('content_raw')
+        data['author'] = request.form.get('author')
+        data['link'] = gen_link(data['title'])
+        if data['link'] == "rss":
+            data['link'] = "p_rss"
+        p = g.db.query(Post).filter(Post.link == post, Post.blog == blog.id).first()
+        
+        if p is None:
+            return redirect("/dashboard")
+
+        p.title = data['title']
+        p.content_raw = data['content_raw']
+        p.content_html = data['content']
+        p.author = data['author']
+        p2 = g.db.query(Post).filter(Post.link.startswith(data['link']), Post.blog == blog.id).count()
+        if p2 > 0 and data['link'] != post:
+            data['link'] = data['link'] + "-" + str(p2 + 1)
+        
+        p.link = data['link']
+        g.db.commit()
+        return redirect('/dashboard/edit/' + blog.name)
+
+@app.route("/dashboard/edit/<blog>/<post>/delete")
+def delete_post(blog, post):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=blog).first()
+    if blog is None:
+        return redirect("/dashboard")
+
+    if blog.owner != g.user:
+        return redirect("/dashboard")
+
+    p = g.db.query(Post).filter(Post.link == post, Post.blog == blog.id).first()
+    if post == None:
+        return redirect(f"/dashboard/edit/{blog.name}")
+
+    g.db.delete(p)
+    g.db.commit()
+    return redirect(f"/dashboard/edit/{blog.name}")
+
+
 @app.route("/b/<blog>")
 def show_blog(blog):
     blog = g.db.query(Blog).filter_by(name=blog).first()
@@ -381,6 +452,7 @@ def show_blog(blog):
         return redirect(f"https://{blog.name}.{os.getenv('DOMAIN')}/")
 
     posts = g.db.query(Post).filter_by(blog=blog.id).all()
+    blog.url = f"/b/{blog.name}"
 
     return render_template("blog.html", blog=blog, posts=posts)
 
@@ -400,6 +472,22 @@ def show_subblog(blog):
 @app.route("/b/<blog>/<post>")
 def show_post(blog, post):
     blog = g.db.query(Blog).filter_by(name=blog).first()
+    if post == "rss":
+        posts = g.db.query(Post).filter_by(blog=blog.id).all()
+        fg = FeedGenerator()
+        fg.title(blog.title)
+        fg.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}", rel="alternate")
+        fg.description(blog.description_html)
+        for p in posts:
+            fe = fg.add_entry()
+            fe.title(p.title)
+            fe.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{p.link}")
+            fe.description(p.content_html)
+
+        rss_xml = fg.rss_str(pretty=True)
+        rss_string = rss_xml.decode('utf-8')
+        return Response(rss_string, mimetype="application/rss+xml")
+
     if blog is None:
         return redirect("/")
 
@@ -407,12 +495,31 @@ def show_post(blog, post):
         return redirect(f"https://{blog.name}.{os.getenv('DOMAIN')}/{post.link}")
     one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
     user = g.db.query(User).filter_by(id=g.user)
+    post_author = g.db.query(User).filter_by(id=blog.owner).first()
+    blog.url = f"/b/{blog.name}"
+    one_post.authorname = post_author.username
 
     return render_template("post.html", user=user, blog=blog, post=one_post)
 
 @app.route('/<post>', subdomain="<blog>")
 def show_subport(blog, post):
     blog = g.db.query(Blog).filter_by(name=blog).first()
+    if post == "rss":
+        posts = g.db.query(Post).filter_by(blog=blog.id).all()
+        fg = FeedGenerator()
+        fg.title(blog.title)
+        fg.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}", rel="alternate")
+        fg.description(blog.description_html)
+        for p in posts:
+            fe = fg.add_entry()
+            fe.title(p.title)
+            fe.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{p.link}")
+            fe.description(p.content_html)
+
+        rss_xml = fg.rss_str(pretty=True)
+        rss_string = rss_xml.decode('utf-8')
+        return Response(rss_string, mimetype="application/rss+xml")
+
     if blog is None:
         return redirect(f"https://{os.getenv('DOMAIN')}/")
 
@@ -420,6 +527,9 @@ def show_subport(blog, post):
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{post.link}")
     one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
     user = g.db.query(User).filter_by(id=g.user)
+    post_author = g.db.query(User).filter_by(id=blog.owner).first()
+    one_post.authorname = post_author.username
+    blog.url = f"https://{blog.name}.{os.getenv('DOMAIN')}"
 
     return render_template("post.html", user=user, blog=blog, post=one_post)
 

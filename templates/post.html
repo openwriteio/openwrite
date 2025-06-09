@@ -1,0 +1,8 @@
+{% include 'blog_header.html' %}
+            <h1 class="post-title">{{ post.title }}</h1>
+            <i class="post-date">{{ post.date }} {% if post.author | int > 0 %} by {{ post.authorname }} {% endif %}</i>
+            <article class="post-content" style="margin-top: 2rem;">
+                {{ post.content_html | safe }}
+            </article>
+        </article>
+{% include 'blog_footer.html' %}

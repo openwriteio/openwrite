@@ -9,6 +9,8 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     email = Column(String(120), nullable=True)
+    verified = Column(Integer, nullable=False)
+    admin = Column(Integer, nullable=False)
 
 class Blog(Base):
     __tablename__ = "blogs"

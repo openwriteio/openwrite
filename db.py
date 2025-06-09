@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.pool import StaticPool
 import os
 import json
 
@@ -19,7 +20,7 @@ else:
     raise ValueError("Unsupported DB_TYPE. Use 'sqlite' or 'mysql'.")
 
 
-engine = create_engine(DB_URL, echo=False, future=True)
+engine = create_engine(DB_URL, echo=False, future=True, connect_args={"check_same_thread": False}, poolclass=StaticPool)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 Base = declarative_base()

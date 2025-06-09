@@ -326,6 +326,11 @@ h1.blog-name {
     font-family: "Merriweather";
 }
 
+h1.blog-name a {
+    text-decoration: none;
+    color: #e9d4ce;
+}
+
 h1.post-title {
     font-family: "IBMPlexSans";
     margin-bottom: 1rem;
@@ -337,7 +342,6 @@ i.post-date {
 }
 
 article.post-content {
-    margin-top: 2rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -378,4 +382,16 @@ article.post-content ol, article.post-content ul, article.post-content img {
 .small.btn {
     max-width: 30px;
     max-height: 30px;
+}
+
+
+table.posts {
+    border-collapse: collapse;
+}
+
+a.action {
+    text-decoration: none;
+    color: #d2c5ff;
+} a.action:hover {
+    text-decoration: underline;
 }

@@ -6,22 +6,41 @@
     {% endif %}
 
     <form method="post" action="/dashboard/create">
-        <span class="form-field">Choose blog name:</span>
-        <input type="text" name="name" style="max-width: 350px" placeholder="blog-name" required>
-        <span class="form-field" style="margin-top: 2rem;">How would you like to access your blog?</span>
+        <span class="form-field">{{ g.trans['choose_blog_title'] }}:</span>
+        <input type="text" name="name" style="max-width: 350px" placeholder="my awesome blog" required>
+        <span class="form-field">{{ g.trans['choose_blog_url'] }}:</span>
+        <input id="url" oninput="change_url();" type="text" name="url" style="max-width: 350px" placeholder="my-awesome-blog" required>
+
+        <span class="form-field" style="margin-top: 2rem;">{{ g.trans['access_blog_how'] }}?</span>
         <div class="horizontal-fields">
             <input type="radio" id="domain" name="access" value="domain">
-            <label for="domain">Domain name: <i>blog-name.{{ g.main_domain }}</i></label>
+            <label for="domain">{{ g.trans['domain_name'] }}: <i><span id="bname">my-awesome-blog</span>.{{ g.main_domain }}</i></label>
         </div>
         <div class="horizontal-fields">
             <input type="radio" id="path" name="access" value="path" checked>
-            <label for="path">Path: <i>{{ g.main_domain }}/b/blog-name</i></label>
+            <label for="path">{{ g.trans['path'] }}: <i>{{ g.main_domain }}/b/<span id="bname2">my-awesome-blog</span></i></label>
         </div>
         <div class="horizontal-fields" style="margin-top: 2rem;">
             <input type="checkbox" name="index" id="index">
-            <label for="index">Index your blog in search engines?</label>
+            <label for="index">{{ g.trans['index_blog'] }}?</label>
         </div>
-        <input type="submit" value="Create" class="btn purple">
+        <input type="submit" value="{{ g.trans['create'] }}" class="btn purple">
     </form>
 </article>
+
+<script>
+function change_url() {
+    var url = document.querySelector("#url").value.trim().replaceAll(/[^a-zA-Z0-9]+/g, "-").replaceAll(".", "-").toLowerCase();
+    var bname = document.querySelector("#bname");
+    var bname2 = document.querySelector("#bname2");
+
+    if(url.length > 0) {
+        bname.innerText = url;
+        bname2.innerText = url;
+    } else {
+        bname.innerText = "my-awesome-blog";
+        bname2.innerText = "my-awesome-blog";
+    }
+}
+</script>
 {% include 'footer.html' %}

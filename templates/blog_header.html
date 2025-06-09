@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if blog.index == "off" %}<meta name="robots" content="noindex, nofollow"> {% endif %}
+    <title>{% if post %}{{ post.title }} | {% endif %}{{ blog.title }}</title>
+    <meta name="description" content="Minimalist, opensource blog. Write, freely.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="blog-name"><a href="{{ blog.url }}">{{ blog.title }}</a></h1>
+            <div id="menu">
+                    <a href="{{ blog.url }}/rss">
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     width="24" height="24"
+     fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="4" cy="20" r="2" fill="white" stroke="none" />
+  <path d="M4 13a7 7 0 0 1 7 7" />
+  <path d="M4 9a11 11 0 0 1 11 11" />
+</svg>
+
+                    </a>
+            </div>
+        </header>
+        <article class="main-content">

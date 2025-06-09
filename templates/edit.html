@@ -1,31 +1,36 @@
 {% include 'header.html' %}
 <h1 class="centered">blog: {{ blog.name }}</h1>
 <div class="bloginfo">
-<span class="bloginfo">Title: {{ blog.title }}</span>
-<span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span>
-<span class="bloginfo">Description(Markdown): </span>
+
 <form method="post" action="/dashboard/edit/{{ blog.name }}">
+<span class="bloginfo">{{ g.trans['title'] }}: <input type="text" name="title" value="{{ blog.title }}"></span><br>
+<span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span><br><br>
+<span class="bloginfo">{{ g.trans['description'] }} (markdown): </span>
 <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content" style="min-height: 200px; margin-bottom: 1rem; width: 100%">{{ blog.description_raw }}</textarea>
 <div style="display: flex; justify-content: space-between">
-    <input type="submit" id="submit" value="Save" class="btn purple">
+    <input type="submit" id="submit" value="{{ g.trans['save'] }}" class="btn purple">
     {% if g.upload_enabled %}
-    <a href="#" id="uploadLink" class="btn empty">📎 Upload image</a>
+    <a href="#" id="uploadLink" class="btn empty">📎 {{ g.trans['upload_image'] }}</a>
     <input type="file" id="fileInput" style="display: none;">
     {% endif %}
 </div>
 </form>
 
-<span class="bloginfo">Posts:</span>
+<span class="bloginfo">{{ g.trans['posts'] }}:</span>
 <table class="posts" border="1">
 <thead>
-    <th width="30%">Date</th><th>Title</th>
+    <th width="20%">{{ g.trans['date'] }}</th><th>{{ g.trans['title'] }}</th><th width="15%">{{ g.trans['actions'] }}</th>
 </thead>
 <tbody>
 {% for post in posts %}
-    <tr><td>{{ post.date }}</td><td>{{ post.title }}</td></tr>
+    <tr><td>{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ g.trans['edit'] }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ g.trans['are_you_sure_post'] }} {{ post.title }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete'] }}</a></td></tr>
 {% endfor %}
 </tbody>
 </table>
+<div style="display:flex; gap: 1rem; margin-top: 1rem">
+<a href="/dashboard/post/{{ blog.name }}" class="btn purple">{{ g.trans['new_post'] }}</a>
+<a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete_blog'] }}</a>
+</div>
 </div>
 <script>
         var converter = new showdown.Converter();
@@ -44,12 +49,14 @@
         const description_raw = form.querySelector('textarea[name="content"]').value;
 
         const description_html = converter.makeHtml(description_raw);
+        const title = form.querySelector('input[name="title"]').value;
 
         const tempForm = document.createElement('form');
         tempForm.method = 'POST';
         tempForm.action = '/dashboard/edit/{{ blog.name }}';
         const date = new Date();
         const inputs = {
+            title: title,
             description_raw: description_raw,
             description_html: description_html
         };
