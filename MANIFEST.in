@@ -1,0 +1,3 @@
+include openwrite/i18n.json
+recursive-include openwrite/templates *
+recursive-include openwrite/static *

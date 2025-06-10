@@ -1,15 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Packages
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# mypy / coverage
+.mypy_cache/
+.coverage
+htmlcov/
+
+# VSCode / IDEs
+.vscode/
+.idea/
+*.swp
+
+# Envs
 .venv/
+env/
 venv/
 
+# Local env config
 .env
-.env.*
 
-__pycache__/
-**/__pycache__/
+# Translations cache
+*.mo
+*.pot
 
-*.log
-*.sqlite3
-*.sqlite
-*.db
-
-*.swp
+# System files
+.DS_Store
+Thumbs.db

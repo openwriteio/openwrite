@@ -1,0 +1,193 @@
+from flask import Blueprint, render_template, redirect, request, g
+from openwrite.utils.models import Blog, Post, User, View
+from openwrite.utils.helpers import sanitize_html, gen_link
+
+from sqlalchemy import desc
+
+dashboard_bp = Blueprint("dashboard", __name__)
+
+@dashboard_bp.route("/dashboard")
+def dashboard():
+    if g.user is None:
+        return redirect("/login")
+
+    user_blogs = g.db.query(Blog).filter_by(owner=g.user).all()
+    user = g.db.query(User).filter_by(id=g.user)
+
+    return render_template("dashboard.html", blogs=user_blogs, user=user)
+
+@dashboard_bp.route("/dashboard/create", methods=['GET', 'POST'])
+def create_blog():
+    if g.user is None:
+        return redirect("/login")
+
+    count = g.db.query(Blog).filter_by(owner=g.user).count()
+    if count >= int(g.blog_limit):
+        return redirect("/dashboard")
+
+    if request.method == "GET":
+        return render_template("create.html")
+
+    form_name = request.form.get("name")
+    form_url = gen_link(request.form.get("url"))
+    blog = g.db.query(Blog).filter_by(name=form_url).first()
+    if blog:
+        return render_template("create.html", error="This URL already exists!")
+    
+    form_index = request.form.get("index") or "off"
+    form_access = request.form.get("access")
+
+    try:
+        new_blog = Blog(
+            owner=g.user,
+            title=form_name,
+            name=form_url,
+            index=form_index,
+            access=form_access,
+            description_raw="![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋",
+            description_html="<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1>"
+        )
+        g.db.add(new_blog)
+        g.db.commit()
+        return redirect("/dashboard")
+    except Exception:
+        return render_template("create.html", error=g.trans['error'])
+
+@dashboard_bp.route("/dashboard/delete/<name>")
+def delete_blog(name):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=name).first()
+    if blog is None or blog.owner != g.user:
+        return redirect("/dashboard")
+
+    g.db.delete(blog)
+    g.db.commit()
+    return redirect("/dashboard")
+
+@dashboard_bp.route("/dashboard/edit/<name>", methods=['GET', 'POST'])
+def edit_blog(name):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=name).first()
+    if blog is None or blog.owner != g.user:
+        return redirect("/dashboard")
+
+    posts = g.db.query(Post).filter_by(blog=blog.id).all()
+    for p in posts:
+        v = g.db.query(View).filter(View.post == p.id, View.blog == blog.id).count()
+        p.views = v
+
+    if request.method == "GET":
+        return render_template("edit.html", blog=blog, posts=posts)
+
+    blog.description_raw = request.form.get("description_raw")
+    blog.description_html = sanitize_html(request.form.get("description_html"))
+    blog.title = request.form.get("title")
+    g.db.commit()
+
+    return render_template("edit.html", blog=blog, posts=posts)
+
+@dashboard_bp.route("/dashboard/post/<name>", methods=['GET', 'POST'])
+def new_post(name):
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=name).first()
+    if blog is None or blog.owner != g.user:
+        return redirect("/dashboard")
+
+    if request.method == "GET":
+        return render_template("new_post.html", blog=blog)
+
+    u = g.db.query(User).filter_by(id=g.user).first()
+    title = request.form.get('title')
+    link = gen_link(title)
+    if link == "rss":
+        link = "p_rss"
+    dupes = g.db.query(Post).filter(Post.link.startswith(link), Post.blog == blog.id).count()
+    if dupes > 0:
+        link += f"-{dupes + 1}"
+
+    post = Post(
+        blog=blog.id,
+        title=title,
+        content_raw=request.form.get('content_raw'),
+        content_html=sanitize_html(request.form.get('content')),
+        author=request.form.get('author'),
+        link=link,
+        feed=request.form.get('feed')
+    )
+    g.db.add(post)
+    g.db.commit()
+    return redirect(f"/dashboard/edit/{blog.name}")
+
+@dashboard_bp.route("/dashboard/preview", methods=['POST'])
+def preview():
+    if g.user is None:
+        return redirect("/login")
+
+    u = g.db.query(User).filter_by(id=g.user).first()
+    data = {
+        'title': request.form.get('title'),
+        'content': sanitize_html(request.form.get('content')),
+        'author': request.form.get('author'),
+        'blog_title': request.form.get('blog_title'),
+        'blog_name': request.form.get('blog_name'),
+        'date': request.form.get('date'),
+        'author_name': u.username
+    }
+
+    return render_template("preview.html", data=data)
+
+@dashboard_bp.route("/dashboard/edit/<blog>/<post>", methods=['GET', 'POST'])
+def edit_post(blog, post):
+    if g.user is None:
+        return redirect("/login")
+
+    blog_obj = g.db.query(Blog).filter_by(name=blog).first()
+    if blog_obj is None or blog_obj.owner != g.user:
+        return redirect("/dashboard")
+
+    e_post = g.db.query(Post).filter_by(link=post).first()
+    if request.method == "GET":
+        return render_template("new_post.html", blog=blog_obj, post=e_post)
+
+    p = g.db.query(Post).filter_by(link=post, blog=blog_obj.id).first()
+    if not p:
+        return redirect("/dashboard")
+
+    title = request.form.get("title")
+    link = gen_link(title)
+    if link == "rss":
+        link = "p_rss"
+    dupes = g.db.query(Post).filter(Post.link.startswith(link), Post.blog == blog_obj.id).count()
+    if dupes > 0 and link != post:
+        link += f"-{dupes + 1}"
+
+    p.title = title
+    p.content_raw = request.form.get("content_raw")
+    p.content_html = sanitize_html(request.form.get("content"))
+    p.author = request.form.get("author")
+    p.link = link
+    g.db.commit()
+    return redirect(f"/dashboard/edit/{blog_obj.name}")
+
+@dashboard_bp.route("/dashboard/edit/<blog>/<post>/delete")
+def delete_post(blog, post):
+    if g.user is None:
+        return redirect("/login")
+
+    blog_obj = g.db.query(Blog).filter_by(name=blog).first()
+    if blog_obj is None or blog_obj.owner != g.user:
+        return redirect("/dashboard")
+
+    p = g.db.query(Post).filter_by(link=post, blog=blog_obj.id).first()
+    if p:
+        g.db.delete(p)
+        g.db.commit()
+
+    return redirect(f"/dashboard/edit/{blog_obj.name}")
+

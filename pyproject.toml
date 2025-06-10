@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openwrite"
+version = "0.2.0"
+license = "AGPL-3.0-or-later"
+dependencies = [
+    "flask",
+    "python-dotenv",
+    "sqlalchemy",
+    "bcrypt",
+    "feedgen",
+    "Pillow",
+    "requests",
+    "bleach",
+    "flask-cors",
+    "PyMySQL",
+    "gunicorn"
+]
+
+[project.scripts]
+openwrite = "openwrite.cli:cli"
+
+[tool.setuptools]
+include-package-data = true

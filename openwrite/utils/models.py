@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Text
 from sqlalchemy.sql import func
-from db import Base
+from openwrite.db.base import Base
 
 class User(Base):
     __tablename__ = "users"
