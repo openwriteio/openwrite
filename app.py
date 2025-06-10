@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request, g, redirect, make_response, session, jsonify, Response
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 import json
 from db import SessionLocal
-from models import User, Blog, Post
+from models import User, Blog, Post, View
 import bcrypt
 import time
 import bleach
@@ -18,6 +18,7 @@ import re
 import unicodedata
 from flask_cors import CORS
 from feedgen.feed import FeedGenerator
+import datetime
 
 start_time = time.time()
 
@@ -39,6 +40,17 @@ version = "0.1"
 
 with open("i18n.json", "r", encoding="utf-8") as f:
     translations = json.load(f)
+
+def anonymize(ip: str, salt: str = os.getenv("SECRET_KEY")) -> str:
+    dane = (salt + ip).encode("utf-8")
+    return hashlib.sha256(dane).hexdigest()
+
+
+def get_ip():
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    if ip and "," in ip:
+        ip = ip.split(",")[0].strip()
+    return ip
 
 def sanitize_html(content):
     allowed_tags = [
@@ -112,6 +124,7 @@ def init_data():
 
     if session.get("userid") is not None:
         g.user = session.get("userid")
+        g.isadmin = session.get("admin")
     else:
         g.user = None
 
@@ -139,7 +152,7 @@ def set_lang(lang_code):
 def show_instance():
     blog_count = g.db.query(Blog).count()
     user_count = g.db.query(User).count()
-    return {"openwrite version": version, "blogs_running": blog_count, "users": user_count, "uptime": (time.time() - start_time) }
+    return {"version": version, "blogs": blog_count, "users": user_count, "uptime": int((time.time() - start_time)), "name": os.getenv("DOMAIN"), "register": os.getenv("SELF_REGISTER"), "media": os.getenv("MEDIA_UPLOAD") }
 
 
 @app.route("/upload_image", methods=["POST"])
@@ -209,6 +222,9 @@ def register():
     elif request.method == "POST":
         form_username = request.form.get('username')
         form_password = request.form.get('password')
+        form_password2 = request.form.get('password2')
+        if form_password != form_password2:
+            return render_template("register.html", error=g.trans['password_dont_match'])
         form_email = request.form.get('email')
         user = g.db.query(User).filter_by(username=form_username).first()
         if user:
@@ -216,7 +232,7 @@ def register():
         
         try: 
             hashed = bcrypt.hashpw(form_password.encode('utf-8'), bcrypt.gensalt())
-            new_user = User(username=form_username, email=form_email, password_hash=hashed.decode('utf-8'))
+            new_user = User(username=form_username, email="", password_hash=hashed.decode('utf-8'), verified=0, admin=0)
             g.db.add(new_user)
             g.db.commit()
             return render_template("register.html", message=g.trans["registered"])
@@ -237,6 +253,7 @@ def login():
         user = g.db.query(User).filter_by(username=form_username).first()
         if user and bcrypt.checkpw(form_password.encode('utf-8'), user.password_hash.encode('utf-8')):
             session["userid"] = user.id
+            session["admin"] = user.admin
             return redirect("/dashboard")
         else:
             return render_template('login.html', error=g.trans["invalid_credentials"])
@@ -252,8 +269,9 @@ def dashboard():
         return redirect("/login")
 
     user_blogs = g.db.query(Blog).filter_by(owner=g.user).all()
+    user = g.db.query(User).filter_by(id=g.user)
 
-    return render_template("dashboard.html", blogs=user_blogs)
+    return render_template("dashboard.html", blogs=user_blogs, user=user)
 
 @app.route("/dashboard/create", methods=['GET', 'POST'])
 def create_blog():
@@ -312,6 +330,9 @@ def edit_blog(name):
         return redirect("/dashboard")
 
     posts = g.db.query(Post).filter_by(blog=blog.id).all()
+    for p in posts:
+        v = g.db.query(View).filter(View.post == p.id and View.blog == blog.id).count()
+        p.views = v
     if request.method == "GET":
        return render_template("edit.html", blog=blog, posts=posts)
 
@@ -348,6 +369,7 @@ def new_post(name):
         data['content_raw'] = request.form.get('content_raw')
         data['author'] = request.form.get('author')
         data['link'] = gen_link(data['title'])
+        data['feed'] = request.form.get('feed')
         if data['link'] == "rss":
             data['link'] = "p_rss"
         p = g.db.query(Post).filter(Post.link.startswith(data['link']), Post.blog == blog.id).count()
@@ -355,7 +377,7 @@ def new_post(name):
             data['link'] = data['link'] + "-" + str(p + 1)
         
 
-        new_post = Post(blog=blog.id, title=data['title'], content_raw=data['content_raw'], content_html=data['content'], author=data['author'], link=data['link'])
+        new_post = Post(blog=blog.id, title=data['title'], content_raw=data['content_raw'], content_html=data['content'], author=data['author'], link=data['link'], feed=data['feed'])
         g.db.add(new_post)
         g.db.commit()
 
@@ -451,7 +473,7 @@ def show_blog(blog):
     if blog.access == "domain":
         return redirect(f"https://{blog.name}.{os.getenv('DOMAIN')}/")
 
-    posts = g.db.query(Post).filter_by(blog=blog.id).all()
+    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.date)).all()
     blog.url = f"/b/{blog.name}"
 
     return render_template("blog.html", blog=blog, posts=posts)
@@ -465,7 +487,7 @@ def show_subblog(blog):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}")
 
-    posts = g.db.query(Post).filter_by(blog=blog.id).all()
+    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.date)).all()
 
     return render_template("blog.html", blog=blog, posts=posts)   
 
@@ -498,8 +520,15 @@ def show_post(blog, post):
     post_author = g.db.query(User).filter_by(id=blog.owner).first()
     blog.url = f"/b/{blog.name}"
     one_post.authorname = post_author.username
+    ip = anonymize(get_ip())
+    v = g.db.query(View).filter(View.blog == blog.id and View.post == one_post.id and hash == ip).count()
+    if v < 1:
+        new_view = View(blog = blog.id, post = one_post.id, hash = ip)
+        g.db.add(new_view)
+        g.db.commit()
 
-    return render_template("post.html", user=user, blog=blog, post=one_post)
+
+    return render_template("post.html", user=user, blog=blog, post=one_post, views=v)
 
 @app.route('/<post>', subdomain="<blog>")
 def show_subport(blog, post):
@@ -526,12 +555,83 @@ def show_subport(blog, post):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{post.link}")
     one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
+    
     user = g.db.query(User).filter_by(id=g.user)
     post_author = g.db.query(User).filter_by(id=blog.owner).first()
     one_post.authorname = post_author.username
     blog.url = f"https://{blog.name}.{os.getenv('DOMAIN')}"
+    ip = anonymize(get_ip())
+    v = g.db.query(View).filter(View.blog == blog.id and View.post == one_post.id and hash == ip).count()
+    if v < 1:
+        new_view = View(blog = blog.id, post = one_post.id, hash = ip)
+        g.db.add(new_view)
+        g.db.commit()
 
-    return render_template("post.html", user=user, blog=blog, post=one_post)
+    return render_template("post.html", user=user, blog=blog, post=one_post, views=v)
+
+@app.route("/admin")
+def admin():
+    if g.user is None or g.isadmin == 0:
+        return redirect("/")
+
+    blogs = g.db.query(Blog).all()
+    users = g.db.query(User).all()
+
+    return render_template("admin.html", blogs=blogs, users=users)
+
+@app.route("/admin/delete_blog/<blog>")
+def admin_delete_blog(blog):
+    if g.user is None or g.isadmin == 0:
+        return redirect("/")
+
+    b = g.db.query(Blog).filter_by(name=blog).first()
+    g.db.delete(b)
+    g.db.commit()
+    return redirect("/admin")
+
+@app.route("/admin/delete_user/<user>")
+def admin_delete_user(user):
+    if g.user is None or g.isadmin == 0:
+        return redirect("/")
+
+    user = g.db.query(User).filter_by(username=user).first()
+    user_blogs = g.db.query(Blog).filter_by(owner=user.id).all()
+
+    for b in user_blogs:
+        g.db.delete(b)
+
+    g.db.delete(user)
+    g.db.commit()
+    return redirect("/admin")
+
+@app.route("/instances")
+def instances():
+    instances = ["https://openwrite.io"]
+    instances_data = []
+
+    for i in instances:
+        response = json.loads(requests.get(f"{i}/.well-known/openwrite").text)
+        if response:
+           uptime = str(datetime.timedelta(seconds=response['uptime']))
+           instances_data.append({"name": response['name'], "url": i, "users": response['users'], "uptime": uptime, "version": response['version'], "blogs": response['blogs'], "register": response['register'], "media": response['media']})
+
+    return render_template("instances.html", instances=instances_data)
+
+@app.route("/discover")
+def discover():
+    posts = g.db.query(Post).filter_by(feed=1).order_by(desc(Post.date)).all()
+    if len(posts) > 0:
+        for p in posts:
+            b = g.db.query(Blog).filter_by(id=p.blog).first()
+            if b.access == "path":
+                url = f"https://{os.getenv('DOMAIN')}/b/{b.name}/{p.link}"
+            elif b.access == "domain":
+                url = f"https://{b.name}.{os.getenv('DOMAIN')}/{p.link}"
+            
+            p.url = url
+            p.blogname = b.title
+
+    return render_template("discover.html", posts=posts)
 
 @app.route("/")
 def index():
@@ -543,4 +643,4 @@ def index():
 
 if __name__ == "__main__":
 	app.config['TEMPLATES_AUTO_RELOAD'] = True
-	app.run(host=os.environ.get("IP"), port=os.environ.get("PORT"))
+	app.run(host=os.environ.get("IP"), port=os.environ.get("PORT"), debug=True, use_reloader=True)

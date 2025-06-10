@@ -35,3 +35,13 @@ class Post(Base):
     content_raw = Column(Text, nullable=False)
     content_html = Column(Text, nullable=False)
     author = Column(String(10), nullable=False)
+    feed = Column(String(10), nullable=False)
+
+class View(Base):
+    __tablename__ = "views"
+
+    id = Column(Integer, primary_key=True)
+    hash = Column(String(64), nullable=False)
+    blog = Column(Integer, nullable=False)
+    post = Column(Integer, nullable=False)
+

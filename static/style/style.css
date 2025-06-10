@@ -395,3 +395,24 @@ a.action {
 } a.action:hover {
     text-decoration: underline;
 }
+
+table.table thead {
+    height: 3rem;
+}
+
+table.table thead th {
+    min-height: 2rem;
+    background: #392f39;
+}
+
+table.table tbody {
+    height: 2.2rem;
+}
+
+table.table tbody td {
+    text-align: center;
+}
+
+table.table tbody tr:nth-child(odd) td {
+    background: #2b1d2d;
+}

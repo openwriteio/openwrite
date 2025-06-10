@@ -28,6 +28,10 @@
         <input type="file" id="fileInput" style="display: none;">
         {% endif %}
     </div>
+<div style="display: flex; gap: 0.5rem;">
+    <input type="checkbox" id="feed" {% if post %} {% if post.feed == "1" %}checked="true"{% endif %} {% else %} checked="true" {% endif %}>
+<label for="feed" style="text-align: left">{{ g.trans['include_in_feed'] }}?</label>
+</div>
     <input type="submit" value="{% if post %}{{ g.trans['save'] }}{% else %}{{ g.trans['create'] }}{% endif %}" class="btn purple" id="submit">
 </form>
 </article>
@@ -84,6 +88,7 @@
         const title = form.querySelector('input[name="title"]').value;
         const content_raw = form.querySelector('textarea[name="content"]').value;
         const author = form.querySelector("#author").checked;
+        const feed = form.querySelector("#feed").checked;
 
         const content = converter.makeHtml(content_raw);
 
@@ -95,7 +100,8 @@
             title: title,
             content_raw: content_raw,
             content: content,
-            author: author ? '1' : '0'
+            author: author ? '1' : '0',
+            feed: feed ? '1' : '0'
         };
 
         for (let key in inputs) {

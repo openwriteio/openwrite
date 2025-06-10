@@ -1,0 +1,11 @@
+{% include 'header.html' %}
+<h1 class="centered">{{ g.trans['discover'] }}</h1>
+<p style="margin-bottom: 2rem;">{{ g.trans['discover_text'] }}</p>
+<div style="display: flex; flex-direction: column">
+{% for p in posts %}
+    <div style="display: flex; flex-direction: row; gap: 1rem">
+        <i>{{ p.date }}</i> - {{ p.blogname }} - <a class="action" href="{{ p.url }}" target="_blank">{{ p.title }}</a>
+    </div>
+{% endfor %}
+</div>
+{% include 'footer.html' %}

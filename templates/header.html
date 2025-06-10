@@ -14,13 +14,17 @@
         <header class="header">
             <a href="/"><div id="logo"> </div></a>
             <div id="menu">
-                <a href="#">{{ g.trans["instances"] }}</a>
+                <a href="/discover">{{ g.trans['discover'] }}</a>
+                <a href="/instances">{{ g.trans["instances"] }}</a>
                 <a href="#">{{ g.trans["hosting"] }}</a>
                 {% if g.user %}
                 <a href="/logout">{{ g.trans["logout"] }}</a>
                 {% else %}
                 <a href="/register">{{ g.trans["register"] }}</a>
                 <a href="/login">{{ g.trans["login"] }}</a>
+                {% endif %}
+                {% if g.isadmin == 1 %}
+                <a href="/admin">Admin</a>
                 {% endif %}
             </div>
         </header>

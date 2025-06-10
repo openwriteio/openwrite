@@ -1,0 +1,14 @@
+{% include 'header.html' %}
+<h1 class="centered">{{ g.trans['instances'] }}</h1>
+{{ g.trans['instances_text'] }}
+<table class="table" style="margin-top: 1.5rem;">
+<thead>
+    <th>{{ g.trans['name'] }}</th><th>URL</th><th>{{ g.trans['blogs_running'] }}</th><th>{{ g.trans['users'] }}</th><th>{{ g.trans['register'] }}</th><th>{{ g.trans['media_upload'] }}</th><th>Uptime</th>
+</thead>
+<tbody>
+    {% for i in instances %}
+    <td>{{ i.name }}</td><td><a href="{{ i.url }}" class="action">{{ i.url }}</a></td><td>{{ i.blogs }}</td><td>{{ i.users }}</td><td>{{ g.trans[i.register] }}</td><td>{{ g.trans[i.media] }}</td><td>{{ i.uptime }}</td>
+    {% endfor %}
+</tbody>
+</table>
+{% include 'footer.html' %}
