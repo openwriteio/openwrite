@@ -473,7 +473,7 @@ def show_blog(blog):
     if blog.access == "domain":
         return redirect(f"https://{blog.name}.{os.getenv('DOMAIN')}/")
 
-    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.date)).all()
+    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
     blog.url = f"/b/{blog.name}"
 
     return render_template("blog.html", blog=blog, posts=posts)
@@ -487,7 +487,7 @@ def show_subblog(blog):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}")
 
-    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.date)).all()
+    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
 
     return render_template("blog.html", blog=blog, posts=posts)   
 
@@ -619,7 +619,7 @@ def instances():
 
 @app.route("/discover")
 def discover():
-    posts = g.db.query(Post).filter_by(feed=1).order_by(desc(Post.date)).all()
+    posts = g.db.query(Post).filter_by(feed=1).order_by(desc(Post.id)).all()
     if len(posts) > 0:
         for p in posts:
             b = g.db.query(Blog).filter_by(id=p.blog).first()

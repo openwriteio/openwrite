@@ -14,13 +14,14 @@ DB_PATH = os.getenv("DB_PATH")
 
 if DB_TYPE == "sqlite":
     DB_URL = f"sqlite:///{os.path.join(pwd, DB_PATH)}"
+    engine = create_engine(DB_URL, echo=False, future=True, connect_args={"check_same_thread": False}, poolclass=StaticPool)
 elif DB_TYPE == "mysql":
     DB_URL = DB_PATH
+    engine = create_engine(DB_URL, echo=False, future=True)
 else:
     raise ValueError("Unsupported DB_TYPE. Use 'sqlite' or 'mysql'.")
 
 
-engine = create_engine(DB_URL, echo=False, future=True, connect_args={"check_same_thread": False}, poolclass=StaticPool)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 Base = declarative_base()

@@ -402,7 +402,7 @@ table.table thead {
 
 table.table thead th {
     min-height: 2rem;
-    background: #392f39;
+    background: #2c2244;
 }
 
 table.table tbody {
@@ -414,5 +414,10 @@ table.table tbody td {
 }
 
 table.table tbody tr:nth-child(odd) td {
-    background: #2b1d2d;
+    background: #684ab1;
+}
+
+p code {
+    background: #282c34;
+    color: #abb2bf;
 }

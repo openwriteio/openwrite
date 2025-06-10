@@ -7,7 +7,10 @@
     <title>{% if post %}{{ post.title }} | {% endif %}{{ blog.title }}</title>
     <meta name="description" content="Minimalist, opensource blog. Write, freely.">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/hl.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script src="{{ url_for('static', filename='highlight.min.js') }}"></script>
+    <script>hljs.highlightAll();</script> 
 </head>
 <body>
     <div class="container">
