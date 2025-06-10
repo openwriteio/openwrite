@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, request, session, g
 from openwrite.utils.models import User
 import bcrypt
+import re
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -13,6 +14,8 @@ def register():
         return render_template('register.html')
 
     form_username = request.form.get('username')
+    if not re.match(r"^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,28}[a-zA-Z0-9])?$", form_username):
+        return render_template('register.html', error="Wrong username!")
     form_password = request.form.get('password')
     form_password2 = request.form.get('password2')
 
