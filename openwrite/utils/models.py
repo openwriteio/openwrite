@@ -46,3 +46,8 @@ class View(Base):
     blog = Column(Integer, nullable=False)
     post = Column(Integer, nullable=False)
 
+class Info(Base):
+    __tablename__ = "info"
+
+    id = Column(Integer, primary_key=True)
+    start_time = Column(Integer)

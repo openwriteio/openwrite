@@ -4,6 +4,8 @@ import json
 import datetime
 import requests
 from openwrite.utils.models import Post, Blog
+import time
+from openwrite import start_time
 
 from sqlalchemy import desc
 
@@ -17,7 +19,7 @@ def index():
 
 @main_bp.route("/set-lang/<lang_code>")
 def set_lang(lang_code):
-    if lang_code not in g.trans:
+    if lang_code not in g.alltrans:
         return redirect("/")
     resp = make_response(redirect(request.referrer or "/"))
     resp.set_cookie("lang", lang_code, max_age=60*60*24*365)
@@ -77,9 +79,10 @@ def show_instance():
         "version": "0.1",
         "blogs": blog_count,
         "users": user_count,
-        "uptime": int(time.time() - g.get('start_time', time.time())),
+        "uptime": int(time.time() - int(start_time)),
         "name": os.getenv("DOMAIN"),
         "register": os.getenv("SELF_REGISTER"),
-        "media": os.getenv("MEDIA_UPLOAD")
+        "media": os.getenv("MEDIA_UPLOAD"),
+        "lang": g.trans
     }
 

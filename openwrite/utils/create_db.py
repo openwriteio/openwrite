@@ -1,5 +1,5 @@
 from .db import init_engine
-from .models import User, Blog, Post, View
+from .models import User, Blog, Post, View, Info
 from openwrite.db.base import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base

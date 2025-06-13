@@ -1,9 +1,12 @@
-from flask import Flask
+from flask import Flask, g
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
+from openwrite.utils.models import Info
 import os
 from .utils.helpers import generate_nonce
+import time
 
+start_time = time.time()
 
 
 def create_app():
@@ -40,7 +43,7 @@ def create_app():
 
     @app.before_request
     def before():
-        from flask import g, request, session
+        from flask import request, session
         lang = request.cookies.get("lang")
         if not lang or lang not in translations:
             accept = request.headers.get("Accept-Language", "")
@@ -53,6 +56,7 @@ def create_app():
             lang = "en"
 
         g.trans = translations[lang]
+        g.alltrans = translations
         g.lang = lang
         g.db = SessionLocal()
         g.main_domain = os.getenv("DOMAIN")
@@ -70,7 +74,7 @@ def create_app():
     @app.context_processor
     def inject_globals():
         return {
-            'current_lang': translations.get('current_lang', 'en'),
+            'current_lang': g.lang,
             'available_languages': {
                 'en': {'name': 'English', 'flag': '🇬🇧'},
                 'pl': {'name': 'Polski', 'flag': '🇵🇱'}
