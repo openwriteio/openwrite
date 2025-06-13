@@ -3,6 +3,8 @@ from openwrite.utils.models import Blog, Post, User, View
 from openwrite.utils.helpers import sanitize_html, gen_link, safe_css
 
 from sqlalchemy import desc
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -123,6 +125,9 @@ def new_post(name):
     if dupes > 0:
         link += f"-{dupes + 1}"
 
+    now = datetime.now(timezone.utc)
+    date = now
+
     post = Post(
         blog=blog.id,
         title=title,
@@ -130,6 +135,7 @@ def new_post(name):
         content_html=sanitize_html(request.form.get('content')),
         author=request.form.get('author'),
         link=link,
+        date=now,
         feed=request.form.get('feed')
     )
     g.db.add(post)

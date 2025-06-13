@@ -31,7 +31,7 @@
 </thead>
 <tbody>
 {% for post in posts %}
-    <tr><td style="text-align: center">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ g.trans['edit'] }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ g.trans['are_you_sure_post'] }} {{ post.title }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete'] }}</a></td></tr>
+    <tr><td style="text-align: center" class="datetime">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ g.trans['edit'] }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ g.trans['are_you_sure_post'] }} {{ post.title }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete'] }}</a></td></tr>
 {% endfor %}
 </tbody>
 </table>

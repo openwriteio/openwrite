@@ -6,7 +6,7 @@
             <article class="post-content" id="posts">
                 {% for post in posts %}
                     <div style="display: flex; flex-direction: row; gap: 1rem;">
-                    <i>{{ post.date }}</i> - <a href="{{ blog.url }}/{{ post.link }}">{{ post.title }}</a>
+                    <i class="datetime">{{ post.date }}</i> - <a href="{{ blog.url }}/{{ post.link }}">{{ post.title }}</a>
                     </div>
                 {% endfor%}
             </article>

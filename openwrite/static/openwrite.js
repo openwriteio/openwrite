@@ -33,4 +33,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+
+    var dates = document.getElementsByClassName("datetime");
+    for(var i = 0; i < dates.length; i++) {
+        const utc = dates[i].innerText;
+        const [datePart, timePart] = utc.split(" ");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const [hour, min, sec] = timePart.split(":").map(Number);
+        const localdate = new Date(Date.UTC(year, month - 1, day, hour, min, sec));
+        dates[i].innerText = localdate.toLocaleString();
+    }
 });

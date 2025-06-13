@@ -4,6 +4,8 @@ from openwrite.utils.helpers import gen_link, sanitize_html, anonymize, get_ip
 from feedgen.feed import FeedGenerator
 from sqlalchemy import desc
 import os
+from bs4 import BeautifulSoup
+from datetime import timezone
 
 blog_bp = Blueprint("blog", __name__)
 
@@ -102,10 +104,12 @@ def _generate_rss(blog):
     fg.description(blog.description_html)
 
     for p in posts:
+        soup = BeautifulSoup(p.content_html, "html.parser")
         fe = fg.add_entry()
         fe.title(p.title)
         fe.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{p.link}")
-        fe.description(p.content_html)
+        fe.description(soup.get_text()[:250] + "...")
+        fe.published(p.date.replace(tzinfo=timezone.utc))
 
     return Response(fg.rss_str(pretty=True).decode("utf-8"), mimetype="application/rss+xml")
 
