@@ -4,6 +4,7 @@ import unicodedata
 import hashlib
 from flask import request
 import os
+import secrets
 
 
 def sanitize_html(content):
@@ -48,3 +49,16 @@ def anonymize(ip: str, salt: str = None) -> str:
     data = (salt + ip).encode("utf-8")
     return hashlib.sha256(data).hexdigest()
 
+
+def safe_css(data):
+    banned_keywords = [
+        r"url\s*\(", r"@import", r"@keyframes", r"expression\s*\(", r"javascript\s*:", r"animation"
+    ]
+
+    for keyword in banned_keywords:
+        data = re.sub(keyword, "", data, flags=re.IGNORECASE)
+
+    return data
+
+def generate_nonce():
+    return secrets.token_urlsafe(16)

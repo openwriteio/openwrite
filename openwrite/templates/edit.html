@@ -1,4 +1,7 @@
 {% include 'header.html' %}
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
 <h1 class="centered">blog: {{ blog.name }}</h1>
 <div class="bloginfo">
 
@@ -7,6 +10,11 @@
 <span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span><br><br>
 <span class="bloginfo">{{ g.trans['description'] }} (markdown): </span>
 <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content" style="min-height: 200px; margin-bottom: 1rem; width: 100%">{{ blog.description_raw }}</textarea>
+<div style="display: flex; flex-direction: column; margin-bottom: 1rem">
+<span class="bloginfo">Custom CSS:</span>
+<i style="margin-bottom: 1rem;">Unsafe values like url(), @keyframes, @import, expression, javascript and animation will be removed.</i>
+<textarea name="css" style="min-height: 100px;" class="post_content">{{ blog.css }}</textarea>
+</div>
 <div style="display: flex; justify-content: space-between">
     <input type="submit" id="submit" value="{{ g.trans['save'] }}" class="btn purple">
     {% if g.upload_enabled %}
@@ -23,7 +31,7 @@
 </thead>
 <tbody>
 {% for post in posts %}
-    <tr><td>{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td>{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ g.trans['edit'] }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ g.trans['are_you_sure_post'] }} {{ post.title }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete'] }}</a></td></tr>
+    <tr><td style="text-align: center">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ g.trans['edit'] }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ g.trans['are_you_sure_post'] }} {{ post.title }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete'] }}</a></td></tr>
 {% endfor %}
 </tbody>
 </table>
@@ -32,7 +40,7 @@
 <a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete_blog'] }}</a>
 </div>
 </div>
-<script>
+<script nonce="{{ g.nonce }}">
         var converter = new showdown.Converter();
     converter.setOption('emoji', true);
     converter.setOption('noHeaderId', true);
@@ -50,6 +58,7 @@
 
         const description_html = converter.makeHtml(description_raw);
         const title = form.querySelector('input[name="title"]').value;
+        const css = form.querySelector('textarea[name="css"]').value;
 
         const tempForm = document.createElement('form');
         tempForm.method = 'POST';
@@ -58,7 +67,8 @@
         const inputs = {
             title: title,
             description_raw: description_raw,
-            description_html: description_html
+            description_html: description_html,
+            css: css
         };
 
         for (let key in inputs) {

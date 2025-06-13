@@ -2,6 +2,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
 import os
+from .utils.helpers import generate_nonce
 
 
 
@@ -64,6 +65,8 @@ def create_app():
         else:
             g.user = None
 
+        g.nonce = generate_nonce()
+
     @app.context_processor
     def inject_globals():
         return {
@@ -75,3 +78,19 @@ def create_app():
         }
 
     return app
+
+    @app.after_request
+    def set_headers(response):
+        nonce = g.nonce
+        response.headers["Content-Security-Policy"] = (
+            f"default-src 'none'; "
+            f"script-src 'self' 'nonce-{nonce}'; "
+            f"style-src 'self'; "
+            f"img-src 'self' data:; "
+            f"font-src 'self'; "
+            f"connect-src 'self'; "
+            f"base-uri 'none'; "
+            f"form-action 'self'; "
+            f"frame-ancestors 'none';"
+        )
+        return response

@@ -23,6 +23,7 @@ class Blog(Base):
     access = Column(String(10), nullable=False)
     description_raw = Column(Text, nullable=False)
     description_html = Column(Text, nullable=False)
+    css = Column(Text)
 
 class Post(Base):
     __tablename__ = "posts"

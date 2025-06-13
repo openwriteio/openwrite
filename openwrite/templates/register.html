@@ -19,5 +19,21 @@
         <input type="submit" name="sub" value="{{ g.trans["register"] }}" class="btn purple" style="margin-top: 1rem;">
     </form>
 </article>
+<script nonce="{{ g.nonce }}">
+const form = document.querySelector("form");
+const submit = form.querySelector('input[name="sub"]');
 
+const username = form.querySelector('input[name="username"]');
+const password = form.querySelector('input[name="password"]');
+const password2 = form.querySelector('input[name="password2"]');
+
+username.addEventListener("input", function() {
+    if((this.value.length > 29) || (this.value.match(/^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,28}[a-zA-Z0-9])?$/) == null)) {
+        this.style.border = "1px solid #ff0000";
+    } else {
+        this.style.border = "";
+    }
+});
+
+</script>
 {% include 'footer.html' %}

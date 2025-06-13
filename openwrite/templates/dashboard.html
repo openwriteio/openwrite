@@ -1,4 +1,7 @@
 {% include 'header.html' %}
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
 <h1 class="centered">{{ g.trans['your_blogs'] }}</h1>
 <h2>{{ blogs | count }}/{{ g.blog_limit }}</h2>
 {% for blog in blogs %}

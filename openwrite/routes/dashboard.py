@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, request, g
 from openwrite.utils.models import Blog, Post, User, View
-from openwrite.utils.helpers import sanitize_html, gen_link
+from openwrite.utils.helpers import sanitize_html, gen_link, safe_css
 
 from sqlalchemy import desc
 
@@ -23,13 +23,17 @@ def create_blog():
 
     count = g.db.query(Blog).filter_by(owner=g.user).count()
     if count >= int(g.blog_limit):
-        return redirect("/dashboard")
+        return render_template("create.html", error="Blog limit reached!")
 
     if request.method == "GET":
         return render_template("create.html")
 
     form_name = request.form.get("name")
     form_url = gen_link(request.form.get("url"))
+    if len(form_name) > 30:
+        return render_template("create.html", error="Title too long! Max 30 characters.")
+    if len(form_url) > 30:
+        return render_template("create.html", error="URL too long! Max 30 characters.")
     blog = g.db.query(Blog).filter_by(name=form_url).first()
     if blog:
         return render_template("create.html", error="This URL already exists!")
@@ -45,7 +49,8 @@ def create_blog():
             index=form_index,
             access=form_access,
             description_raw="![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋",
-            description_html="<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1>"
+            description_html="<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1>",
+            css=""
         )
         g.db.add(new_blog)
         g.db.commit()
@@ -85,6 +90,10 @@ def edit_blog(name):
 
     blog.description_raw = request.form.get("description_raw")
     blog.description_html = sanitize_html(request.form.get("description_html"))
+    if len(request.form.get("title")) > 30:
+        return render_template("edit.html", blog=blog, posts=posts, error="Title too long! Max 30 characters.")
+    blog.css = safe_css(request.form.get("css"))
+        
     blog.title = request.form.get("title")
     g.db.commit()
 
@@ -104,6 +113,9 @@ def new_post(name):
 
     u = g.db.query(User).filter_by(id=g.user).first()
     title = request.form.get('title')
+    if len(title) > 120:
+        return render_template("new_post.html", blog=blog, error="Title too long! Max 120 characters.")
+        
     link = gen_link(title)
     if link == "rss":
         link = "p_rss"
@@ -160,6 +172,8 @@ def edit_post(blog, post):
         return redirect("/dashboard")
 
     title = request.form.get("title")
+    if len(title) > 120:
+        return render_template("new_post.html", blog=blog_obj, error="Title too long! Max 120 characters.")
     link = gen_link(title)
     if link == "rss":
         link = "p_rss"

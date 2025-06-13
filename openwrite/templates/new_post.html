@@ -1,4 +1,7 @@
 {% include 'header.html' %}
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
 <div class="container-row-fluid">
     <h3>{% if post %}{{ g.trans['editing_post'] }}: {{ post.title }}{% else %}{{ g.trans['new_post_on'] }}: {{ blog.name }}{% endif %}</h3>
     <a target="_blank" href="/dashboard/preview" class="btn purple" id="preview">{{ g.trans['preview'] }}</a>
@@ -35,7 +38,7 @@
     <input type="submit" value="{% if post %}{{ g.trans['save'] }}{% else %}{{ g.trans['create'] }}{% endif %}" class="btn purple" id="submit">
 </form>
 </article>
-<script>
+<script nonce="{{ g.nonce }}">
     var converter = new showdown.Converter();
     converter.setOption('emoji', true);
     converter.setOption('noHeaderId', true);

@@ -28,7 +28,7 @@
     </form>
 </article>
 
-<script>
+<script nonce="{{ g.nonce }}">
 function change_url() {
     var url = document.querySelector("#url").value.trim().replaceAll(/[^a-zA-Z0-9]+/g, "-").replaceAll(".", "-").toLowerCase();
     var bname = document.querySelector("#bname");
