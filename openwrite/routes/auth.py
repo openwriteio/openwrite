@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, redirect, request, session, g
 from openwrite.utils.models import User
 import bcrypt
 import re
+import requests
+import json
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -25,6 +27,16 @@ def register():
     user = g.db.query(User).filter_by(username=form_username).first()
     if user:
         return render_template('register.html', error=g.trans["user_exists"])
+    
+    if request.form.get("frc-captcha-response") is None or request.form.get("frc-captcha-response") == ".ACTIVATED":
+        return render_template('register.html', error="Invalid captcha!")
+
+    captcha_data = {'response': request.form.get("frc-captcha-response"), 'sitekey': g.fcaptcha_sitekey}
+
+    resp = requests.post("https://global.frcapi.com/api/v2/captcha/siteverify", json=captcha_data, headers={"X-API-Key": g.fcaptcha_apikey})
+
+    if json.loads(resp.text)['success'] != True:
+        return render_template("register.html", error=resp.text)
     
     try: 
         hashed = bcrypt.hashpw(form_password.encode('utf-8'), bcrypt.gensalt())

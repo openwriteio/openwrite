@@ -24,6 +24,9 @@ class Blog(Base):
     description_raw = Column(Text, nullable=False)
     description_html = Column(Text, nullable=False)
     css = Column(Text)
+    pub_key = Column(Text, nullable=False)
+    priv_key = Column(Text, nullable=False)
+    followers = Column(Text)
 
 class Post(Base):
     __tablename__ = "posts"

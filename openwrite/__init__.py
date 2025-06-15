@@ -12,7 +12,7 @@ start_time = time.time()
 def create_app():
     load_dotenv()
     app = Flask(__name__, template_folder="templates", subdomain_matching=True, static_url_path='/static')
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=1, x_host=1, x_port=1)
     app.secret_key = os.getenv("SECRET_KEY")
     app.config['SERVER_NAME'] = os.getenv("DOMAIN")
 
@@ -22,6 +22,7 @@ def create_app():
     from .routes.admin import admin_bp
     from .routes.main import main_bp
     from .routes.upload import upload_bp
+    from .routes.federation import federation_bp
     from .utils.translations import load_translations
     from .utils.db import init_engine, SessionLocal
     from flask_cors import CORS
@@ -40,6 +41,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(upload_bp)
+    app.register_blueprint(federation_bp)
 
     @app.before_request
     def before():
@@ -62,6 +64,9 @@ def create_app():
         g.main_domain = os.getenv("DOMAIN")
         g.blog_limit = os.getenv("BLOG_LIMIT")
         g.upload_enabled = os.getenv("MEDIA_UPLOAD", "no") == "yes"
+        g.captcha = os.getenv("CAPTCHA_ENABLED", "no") == "yes"
+        g.fcaptcha_sitekey = os.getenv("FRIENDLY_CAPTCHA_SITEKEY", "key")
+        g.fcaptcha_apikey = os.getenv("FRIENDLY_CAPTCHA_APIKEY", "api_key")
 
         if session.get("userid") is not None:
             g.user = session.get("userid")
@@ -81,20 +86,33 @@ def create_app():
             }
         }
 
-    return app
-
     @app.after_request
     def set_headers(response):
         nonce = g.nonce
-        response.headers["Content-Security-Policy"] = (
-            f"default-src 'none'; "
-            f"script-src 'self' 'nonce-{nonce}'; "
-            f"style-src 'self'; "
-            f"img-src 'self' data:; "
-            f"font-src 'self'; "
-            f"connect-src 'self'; "
-            f"base-uri 'none'; "
-            f"form-action 'self'; "
-            f"frame-ancestors 'none';"
-        )
+        #response.headers["Content-Security-Policy"] = (
+        #    f"default-src 'none'; "
+        #    f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net http://{g.main_domain}"
+        #    f"style-src 'self'; "
+        #    f"style-src-elem 'self' http://{g.main_domain}; "
+        #    f"style-src-attr 'unsafe-inline';"
+        #    f"script-src-attr 'unsafe-inline';"
+        #    f"img-src 'self' data: http://{g.main_domain}; "
+        #    f"font-src 'self'; "
+        #    f"connect-src 'self'; "
+        #    f"base-uri 'none'; "
+        #    f"form-action 'self'; "
+        #    f"frame-ancestors 'none';"
+        #    f"frame-src https://global.frcapi.com ;"
+        #)
         return response
+
+    @app.route("/debug")
+    def debug():
+        from flask import request
+        return {
+            "remote_addr": request.remote_addr,
+            "access_route": request.access_route,
+            "headers": dict(request.headers)
+        }
+
+    return app

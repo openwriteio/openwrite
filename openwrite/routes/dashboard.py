@@ -1,10 +1,13 @@
 from flask import Blueprint, render_template, redirect, request, g
 from openwrite.utils.models import Blog, Post, User, View
-from openwrite.utils.helpers import sanitize_html, gen_link, safe_css
+from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_create_activity
 
 from sqlalchemy import desc
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+import json
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -42,6 +45,22 @@ def create_blog():
     
     form_index = request.form.get("index") or "off"
     form_access = request.form.get("access")
+    
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+
+    private_pem = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode()
+
+    public_pem = key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode()
 
     try:
         new_blog = Blog(
@@ -52,7 +71,9 @@ def create_blog():
             access=form_access,
             description_raw="![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋",
             description_html="<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1>",
-            css=""
+            css="",
+            pub_key=public_pem,
+            priv_key=private_pem
         )
         g.db.add(new_blog)
         g.db.commit()
@@ -140,6 +161,25 @@ def new_post(name):
     )
     g.db.add(post)
     g.db.commit()
+    
+    if blog.access == "domain":
+        url = f"https://{blog.name}.openwrite.io/{link}"
+    else:
+        url = f"https://openwrite.io/b/{blog.name}/{link}"
+
+    followers = []
+    if blog.followers is not None:
+        followers = json.loads(blog.followers)
+
+    for actor in followers:
+        send_create_activity(
+            f"https://{g.main_domain}/activity/{blog.name}",
+            blog.priv_key,
+            url,
+            f"<p>{title}</p><a href=\"{url}\">{url}</a>",
+            actor
+        )
+        
     return redirect(f"/dashboard/edit/{blog.name}")
 
 @dashboard_bp.route("/dashboard/preview", methods=['POST'])

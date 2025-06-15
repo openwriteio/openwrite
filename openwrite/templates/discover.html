@@ -4,7 +4,7 @@
 <div style="display: flex; flex-direction: column">
 {% for p in posts %}
     <div style="display: flex; flex-direction: row; gap: 1rem">
-        <i>{{ p.date }}</i> - {{ p.blogname }} - <a class="action" href="{{ p.url }}" target="_blank">{{ p.title }}</a>
+        <i class="datetime">{{ p.date }}</i> - {{ p.blogname }} - <a class="action" href="{{ p.url }}" target="_blank">{{ p.title }}</a>
     </div>
 {% endfor %}
 </div>

@@ -17,6 +17,9 @@
         <span class="form-field">{{ g.trans["password2"] }}:</span>
         <input type="password" name="password2">
         <input type="submit" name="sub" value="{{ g.trans["register"] }}" class="btn purple" style="margin-top: 1rem;">
+        {% if g.captcha %}
+        <div class="frc-captcha" data-sitekey="{{ g.fcaptcha_sitekey }}"></div>
+        {% endif %}
     </form>
 </article>
 <script nonce="{{ g.nonce }}">

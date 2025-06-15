@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openwrite"
-version = "0.2.0"
+version = "0.2.5"
 license = "AGPL-3.0-or-later"
 dependencies = [
     "flask",
@@ -18,7 +18,8 @@ dependencies = [
     "flask-cors",
     "PyMySQL",
     "gunicorn",
-    "beautifulsoup4"
+    "beautifulsoup4",
+    "cryptography"
 ]
 
 [project.scripts]
