@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, redirect, request, g, Response
-from openwrite.utils.models import Blog, Post, User, View
+from flask import Blueprint, render_template, redirect, request, g, Response, abort
+from openwrite.utils.models import Blog, Post, User, View, Like
 from openwrite.utils.helpers import gen_link, sanitize_html, anonymize, get_ip
 from feedgen.feed import FeedGenerator
 from sqlalchemy import desc
@@ -62,9 +62,13 @@ def show_post(blog, post):
         new_view = View(blog=blog.id, post=one_post.id, hash=ip)
         g.db.add(new_view)
         g.db.commit()
+    likes = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id).count()
+    one_post.likes = likes
+    liked = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id, Like.hash == anonymize(get_ip())).count()
+    one_post.liked = liked
 
     user = g.db.query(User).filter_by(id=g.user) if g.user else None
-    return render_template("post.html", blog=blog, post=one_post, user=user, views=v)
+    return render_template("post.html", blog=blog, post=one_post, user=user, views=v, likes=likes)
 
 @blog_bp.route("/<post>", subdomain="<blog>")
 def show_subpost(blog, post):
@@ -93,8 +97,40 @@ def show_subpost(blog, post):
         g.db.add(new_view)
         g.db.commit()
 
+    likes = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id).count()
+    one_post.likes = likes
+    liked = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id, Like.hash == anonymize(get_ip())).count()
+    one_post.liked = liked
+
     user = g.db.query(User).filter_by(id=g.user) if g.user else None
     return render_template("post.html", blog=blog, post=one_post, user=user, views=v)
+
+@blog_bp.route("/like", methods=["POST"])
+def like():
+    data = request.get_json()
+    if not data:
+        abort(400)
+    
+    blog_id = data.get("blog")
+    post_id = data.get("post")
+    post = g.db.query(Post).filter(Post.blog == blog_id, Post.id == post_id).count()
+    if post < 1:
+        resp = {"status": "no_post"}
+        return resp, 404
+    ip = anonymize(get_ip())
+
+    l = g.db.query(Like).filter(Like.blog == blog_id, Like.post == post_id, Like.hash == ip).count()
+    if l > 0:
+        resp = {"status": "already_given"}
+        status = 400
+    else:
+        like = Like(blog=blog_id, post=post_id, hash=ip)
+        g.db.add(like)
+        g.db.commit()
+        resp = {"status": "ok"}
+        status = 200
+    return resp, status
+    
 
 def _generate_rss(blog):
     posts = g.db.query(Post).filter_by(blog=blog.id).all()
@@ -112,4 +148,5 @@ def _generate_rss(blog):
         fe.published(p.date.replace(tzinfo=timezone.utc))
 
     return Response(fg.rss_str(pretty=True).decode("utf-8"), mimetype="application/rss+xml")
+
 

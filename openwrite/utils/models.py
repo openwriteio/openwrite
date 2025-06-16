@@ -49,6 +49,14 @@ class View(Base):
     blog = Column(Integer, nullable=False)
     post = Column(Integer, nullable=False)
 
+class Like(Base):
+    __tablename__ = "likes"
+
+    id = Column(Integer, primary_key=True)
+    hash = Column(String(64), nullable=False)
+    blog = Column(Integer, nullable=False)
+    post = Column(Integer, nullable=False)
+
 class Info(Base):
     __tablename__ = "info"
 

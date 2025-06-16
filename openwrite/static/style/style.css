@@ -421,3 +421,7 @@ p code {
     background: #282c34;
     color: #abb2bf;
 }
+
+#like {
+    cursor: pointer;
+}
