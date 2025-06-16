@@ -19,10 +19,11 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Lightweight
 - No tracking, only data collected is anonymized(hashed) IP for post view counting
 - Custom CSS per blog
+- Federation using ActivityPub protocol
+- Likes system
 
 ## TODO
 
-- Federation using ActivityPub protocol
 - More security tests, patching
 - Increase options in admin panel
 - Better file structure
