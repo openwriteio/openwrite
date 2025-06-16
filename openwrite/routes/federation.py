@@ -51,6 +51,7 @@ def activity(blog):
         "name": blog,
         "summary": f"{blog} - Blog on {g.main_domain}",
         "inbox": f"https://{g.main_domain}/inbox/{blog}",
+        "followers": f"https://{g.main_domain}/followers/{blog}",
         "url": url,
         "publicKey": {
             "id": f"https://{g.main_domain}/activity/{blog}#main-key",
@@ -107,10 +108,45 @@ def inbox(blog):
         followers = []
         if b.followers:
             followers = json.loads(b.followers)
-        fol = followers.remove(actor)
-        b.followers = fol
+        if actor in followers:
+            followers = followers.remove(actor)
+        b.followers = followers
         g.db.commit()
 
         return "", 202
 
     return "", 202
+
+
+@federation_bp.route("/followers/<blog>")
+def followers(blog):
+    page = request.args.get("page")
+    b = g.db.query(Blog).filter_by(name=blog).first()
+    if not b:
+        abort(404)
+
+    followers = []
+    if b.followers:
+        followers = json.loads(b.followers)
+
+    if not page:
+        data = {
+          "@context": "https://www.w3.org/ns/activitystreams",
+          "id": f"https://{g.main_domain}/followers/{blog}",
+          "type": "OrderedCollection",
+          "totalItems": len(followers),
+          "first": f"https://{g.main_domain}/followers/{blog}?page=1"
+        }
+
+        return Response(json.dumps(data), content_type="application/activity+json")
+
+    data = {
+      "@context": "https://www.w3.org/ns/activitystreams",
+      "id": f"https://{g.main_domain}/followers/{blog}?page={page}",
+      "type": "OrderedCollectionPage",
+      "totalItems": len(followers),
+      "partOf": f"https://{g.main_domain}/followers/{blog}",
+      "orderedItems": followers
+    }
+
+    return Response(json.dumps(data), content_type="application/activity+json")

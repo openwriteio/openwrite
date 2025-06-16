@@ -12,7 +12,7 @@ start_time = time.time()
 def create_app():
     load_dotenv()
     app = Flask(__name__, template_folder="templates", subdomain_matching=True, static_url_path='/static')
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=1, x_host=1, x_port=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
     app.secret_key = os.getenv("SECRET_KEY")
     app.config['SERVER_NAME'] = os.getenv("DOMAIN")
 
@@ -63,6 +63,7 @@ def create_app():
         g.db = SessionLocal()
         g.main_domain = os.getenv("DOMAIN")
         g.blog_limit = os.getenv("BLOG_LIMIT")
+        g.register_enabled = os.getenv("SELF_REGISTER", "no") == "yes"
         g.upload_enabled = os.getenv("MEDIA_UPLOAD", "no") == "yes"
         g.captcha = os.getenv("CAPTCHA_ENABLED", "no") == "yes"
         g.fcaptcha_sitekey = os.getenv("FRIENDLY_CAPTCHA_SITEKEY", "key")

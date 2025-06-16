@@ -134,7 +134,7 @@ def verify_http_signature(headers, body, blog):
     except Exception as e:
         return False
 
-def send_create_activity(actor_url, private_key_pem, post_url, content_html, to_actor):
+def send_create_activity(actor_url, private_key_pem, post_url, blog_followers, content_html, to_actor):
     activity_id = post_url
 
     now = datetime.datetime.utcnow().isoformat() + "Z"
@@ -143,13 +143,15 @@ def send_create_activity(actor_url, private_key_pem, post_url, content_html, to_
         "id": activity_id,
         "type": "Create",
         "actor": actor_url,
+        "cc": blog_followers,
         "object": {
             "id": post_url,
             "type": "Note",
             "published": now,
             "attributedTo": actor_url,
             "content": content_html,
-            "to": ["https://www.w3.org/ns/activitystreams#Public"]
+            "to": ["https://www.w3.org/ns/activitystreams#Public"],
+            "cc": blog_followers
         },
         "to": ["https://www.w3.org/ns/activitystreams#Public"]
     }
@@ -197,6 +199,16 @@ def send_create_activity(actor_url, private_key_pem, post_url, content_html, to_
         "Content-Type": "application/activity+json",
         "Signature": signature_header
     }
+    print(f"""
+        URL:
+        {inbox_url}
+
+        Headers:
+        {headers}
+
+        Body:
+        {body}
+    """)
 
     response = requests.post(inbox_url, headers=headers, data=body)
     print(f"[+] Sent to {inbox_url}: {response.status_code}")

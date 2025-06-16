@@ -25,7 +25,9 @@
                 {% if g.user %}
                 <a href="/logout">{{ g.trans["logout"] }}</a>
                 {% else %}
+                {% if g.register_enabled %}
                 <a href="/register">{{ g.trans["register"] }}</a>
+                {% endif %}
                 <a href="/login">{{ g.trans["login"] }}</a>
                 {% endif %}
                 {% if g.isadmin == 1 %}

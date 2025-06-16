@@ -176,6 +176,7 @@ def new_post(name):
             f"https://{g.main_domain}/activity/{blog.name}",
             blog.priv_key,
             url,
+            followers,
             f"<p>{title}</p><a href=\"{url}\">{url}</a>",
             actor
         )
