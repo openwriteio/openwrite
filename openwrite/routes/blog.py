@@ -119,16 +119,18 @@ def like():
         return resp, 404
     ip = anonymize(get_ip())
 
-    l = g.db.query(Like).filter(Like.blog == blog_id, Like.post == post_id, Like.hash == ip).count()
-    if l > 0:
-        resp = {"status": "already_given"}
-        status = 400
+    l = g.db.query(Like).filter(Like.blog == blog_id, Like.post == post_id, Like.hash == ip).first()
+    if l:
+        g.db.delete(l)
+        g.db.commit()
+        resp = {"status": "deleted"}
+        status = 204
     else:
         like = Like(blog=blog_id, post=post_id, hash=ip)
         g.db.add(like)
         g.db.commit()
         resp = {"status": "ok"}
-        status = 200
+        status = 201
     return resp, status
     
 

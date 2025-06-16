@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, request, g
 from openwrite.utils.models import Blog, Post, User, View
-from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_create_activity
-
+from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity
+import requests
 from sqlalchemy import desc
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -172,13 +172,29 @@ def new_post(name):
         followers = json.loads(blog.followers)
 
     for actor in followers:
-        send_create_activity(
-            f"https://{g.main_domain}/activity/{blog.name}",
+        now = datetime.utcnow().isoformat() + "Z"
+        activity = {
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"{url}",
+            "type": "Create",
+            "actor": f"https://{g.main_domain}/activity/{blog.name}",
+            "cc": followers,
+            "object": {
+                "id": f"{url}",
+                "type": "Note",
+                "published": now,
+                "attributedTo": f"https://{g.main_domain}/activity/{blog.name}",
+                "content": f"<p>{title}</p><a href=\"{url}\">{url}</a>",
+                "to": ["https://www.w3.org/ns/activitystreams#Public"],
+                "cc": followers
+            },
+            "to": ["https://www.w3.org/ns/activitystreams#Public"]
+        }       
+        send_activity(
+            activity,
             blog.priv_key,
-            url,
-            followers,
-            f"<p>{title}</p><a href=\"{url}\">{url}</a>",
-            actor
+            f"https://{g.main_domain}/activity/{blog.name}",
+            f"{actor}/inbox"
         )
         
     return redirect(f"/dashboard/edit/{blog.name}")

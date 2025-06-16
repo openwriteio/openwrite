@@ -34,12 +34,17 @@ svg.addEventListener("click", function() {
         })
     })
     .then(response => {
-        if(response.status == 200) {
-            var likes = parseInt(this.parentElement.children[0].innerText);
+        var likes = parseInt(this.parentElement.children[0].innerText);
+        if(response.status == 201) {
             likes++;
             this.parentElement.children[0].innerText = likes;
             this.children[0].style.fill = "#DD2E44";
             this.classList.add("liked");
+        } else if(response.status == 204) {
+            likes--;
+            this.parentElement.children[0].innerText = likes;
+            this.children[0].style.fill = "";
+            this.classList.remove("liked");
         }
     });
 });

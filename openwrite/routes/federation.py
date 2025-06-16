@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, g, jsonify, request, abort, Response
-from openwrite.utils.models import Blog, User
-from openwrite.utils.helpers import verify_http_signature
+from openwrite.utils.models import Blog, User, Like, Post
+from openwrite.utils.helpers import verify_http_signature, send_activity, anonymize
 import json
+import requests
 
 federation_bp = Blueprint("federation", __name__) 
 
@@ -77,6 +78,12 @@ def inbox(blog):
     if not data:
         return "Bad Request", 400
 
+    #print(f"""
+    #   Data received:
+
+    #        {data}
+    #""")
+
     body = request.get_data(as_text=True)
     sign = verify_http_signature(request.headers, body, blog)
     if not sign:
@@ -84,6 +91,7 @@ def inbox(blog):
     if data.get("type") == "Follow":
         actor = data.get("actor")
         object_ = data.get("object")
+        id_ = data.get("id")
 
         if object_ != f"https://{g.main_domain}/activity/{blog}":
             return "Invalid target", 400
@@ -96,24 +104,75 @@ def inbox(blog):
         b.followers = json.dumps(followers)
         g.db.commit()
 
+        activity = {
+          "@context": "https://www.w3.org/ns/activitystreams",
+          "id": f"https://{g.main_domain}/activity/{blog}#accept-{id_.split('/')[-1]}",
+          "type": "Accept",
+          "actor": f"https://{g.main_domain}/activity/{blog}",
+          "object": object_,
+          "to": [f"{actor}"]
+        }
+        
+        actor_doc = requests.get(actor, headers={"Accept": "application/activity+json"}).json()
+        inbox = actor_doc.get("endpoints", {}).get("sharedInbox", actor)
+
+        from_ = f"https://{g.main_domain}/activity/{blog}"
+        send_activity(activity, b.priv_key, from_, inbox)
+
+
         return "", 202
 
     elif data.get("type") == "Undo":
         actor = data.get("actor")
         object_ = data.get("object")
         
-        if object_['object'] != f"https://{g.main_domain}/activity/{blog}":
-            return "Invalid target", 400
+        if object_['type'] == "Follow":
+            if object_['object'] != f"https://{g.main_domain}/activity/{blog}":
+                return "Invalid target", 400
 
-        followers = []
-        if b.followers:
-            followers = json.loads(b.followers)
-        if actor in followers:
-            followers = followers.remove(actor)
-        b.followers = followers
-        g.db.commit()
+            followers = []
+            if b.followers:
+                followers = json.loads(b.followers)
+            if actor in followers:
+                followers = followers.remove(actor)
+            b.followers = followers
+            g.db.commit()
 
+        elif object_['type'] == "Like":
+            post_name = object_['object'].split("/")[-1]
+            if object_['object'].split("/")[2] == g.main_domain:
+                blog_name = object_['object'].split("/")[-2]
+            else:
+                blog_name = object_['object'].split("/")[2].split('.')[0]
+            blog = g.db.query(Blog).filter_by(name=blog_name).first()
+            blog_id = blog.id
+            post = g.db.query(Post).filter(Post.blog == blog_id, Post.link == post_name).first()
+            post_id = post.id
+
+            hashed = anonymize(actor)
+            like = g.db.query(Like).filter(Like.blog == blog_id, Like.post == post_id, Like.hash == hashed).first()
+            g.db.delete(like)
+            g.db.commit()
+        
         return "", 202
+
+    elif data.get("type") == "Like":
+        object_ = data.get("object")
+        actor = data.get("actor")
+        post_name = object_.split("/")[-1]
+        if object_.split("/")[2] == g.main_domain:
+            blog_name = object_.split("/")[-2]
+        else:
+            blog_name = object_.split("/")[2].split('.')[0]
+        blog = g.db.query(Blog).filter_by(name=blog_name).first()
+        blog_id = blog.id
+        post = g.db.query(Post).filter(Post.blog == blog_id, Post.link == post_name).first()
+        post_id = post.id
+
+        hashed = anonymize(actor)
+        like = Like(hash=hashed, blog=blog_id, post=post_id)
+        g.db.add(like)
+        g.db.commit()
 
     return "", 202
 

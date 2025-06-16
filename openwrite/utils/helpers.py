@@ -134,33 +134,14 @@ def verify_http_signature(headers, body, blog):
     except Exception as e:
         return False
 
-def send_create_activity(actor_url, private_key_pem, post_url, blog_followers, content_html, to_actor):
-    activity_id = post_url
-
-    now = datetime.datetime.utcnow().isoformat() + "Z"
-    activity = {
-        "@context": "https://www.w3.org/ns/activitystreams",
-        "id": activity_id,
-        "type": "Create",
-        "actor": actor_url,
-        "cc": blog_followers,
-        "object": {
-            "id": post_url,
-            "type": "Note",
-            "published": now,
-            "attributedTo": actor_url,
-            "content": content_html,
-            "to": ["https://www.w3.org/ns/activitystreams#Public"],
-            "cc": blog_followers
-        },
-        "to": ["https://www.w3.org/ns/activitystreams#Public"]
-    }
+def send_activity(activity, private_key_pem, from_, to):
 
     body = json.dumps(activity)
     digest = "SHA-256=" + base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()
     date = datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-    inbox_url = to_actor.rstrip("/") + "/inbox"
+    to_actor = from_
+    inbox_url = to
     parsed = urlparse(inbox_url)
     host = parsed.hostname
     path = parsed.path
@@ -186,7 +167,7 @@ def send_create_activity(actor_url, private_key_pem, post_url, blog_followers, c
     signature_b64 = base64.b64encode(signature).decode()
 
     signature_header = (
-        f'keyId="{actor_url}#main-key",'
+        f'keyId="{to_actor}#main-key",'
         f'algorithm="rsa-sha256",'
         f'headers="(request-target) host date digest content-type",'
         f'signature="{signature_b64}"'
@@ -199,19 +180,24 @@ def send_create_activity(actor_url, private_key_pem, post_url, blog_followers, c
         "Content-Type": "application/activity+json",
         "Signature": signature_header
     }
-    print(f"""
-        URL:
-        {inbox_url}
+    #print(f"""
+    #    URL:
+    #    {inbox_url}
 
-        Headers:
-        {headers}
+    #    Headers:
+    #    {headers}
 
-        Body:
-        {body}
-    """)
+    #    Body:
+    #    {body}
+    #""")
 
     response = requests.post(inbox_url, headers=headers, data=body)
-    print(f"[+] Sent to {inbox_url}: {response.status_code}")
+    #print(f"""
+    #    [+] Sent to {inbox_url}: {response.status_code}
+    #    Body:
+
+    #    {response.text}
+    #""")
     if response.status_code >= 400:
         print("[-] Response:", response.text)
 
