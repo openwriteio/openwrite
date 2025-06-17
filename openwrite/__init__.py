@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
 from openwrite.utils.models import Info
 import os
-from .utils.helpers import generate_nonce
+from .utils.helpers import generate_nonce, get_ip
 import time
 
 start_time = time.time()
@@ -60,7 +60,7 @@ def create_app():
         g.trans = translations[lang]
         g.alltrans = translations
         g.lang = lang
-        g.db = SessionLocal()
+        g.db = SessionLocal
         g.main_domain = os.getenv("DOMAIN")
         g.blog_limit = os.getenv("BLOG_LIMIT")
         g.register_enabled = os.getenv("SELF_REGISTER", "no") == "yes"
@@ -88,7 +88,7 @@ def create_app():
         }
 
     @app.after_request
-    def set_headers(response):
+    def after(response):
         nonce = g.nonce
         #response.headers["Content-Security-Policy"] = (
         #    f"default-src 'none'; "
@@ -105,15 +105,17 @@ def create_app():
         #    f"frame-ancestors 'none';"
         #    f"frame-src https://global.frcapi.com ;"
         #)
+        ip = get_ip()
+        app.logger.info("f{request.method} {request.path} from {ip} -> {response.status}")
         return response
 
-    @app.route("/debug")
-    def debug():
-        from flask import request
-        return {
-            "remote_addr": request.remote_addr,
-            "access_route": request.access_route,
-            "headers": dict(request.headers)
-        }
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.exception(f"Unhandled exception! {e}")
+        return "Internal Server Error", 500
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        g.db.remove()
 
     return app

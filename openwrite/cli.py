@@ -94,7 +94,7 @@ def run(daemon):
     port = int(os.getenv("PORT", 8080))
     if daemon:
         click.echo(f"[+] Openwrite listening on {ip}:{port}")
-        subprocess.Popen(["gunicorn", "openwrite:create_app()", "--bind", f"{ip}:{port}", "--daemon"])
+        subprocess.Popen(["gunicorn", "-w", "4", "openwrite:create_app()", "--bind", f"{ip}:{port}", "--daemon"])
     else:
         app = create_app()
         app.run(host=ip, port=port)

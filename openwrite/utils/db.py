@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
 from sqlalchemy.pool import StaticPool
 import os
 import json
@@ -20,11 +20,11 @@ def init_engine(dbtype, dbpath):
         engine = create_engine(DB_URL, echo=False, future=True, connect_args={"check_same_thread": False}, poolclass=StaticPool)
     elif dbtype == "mysql":
         DB_URL = dbpath
-        engine = create_engine(DB_URL, echo=False, future=True)
+        engine = create_engine(DB_URL, echo=False, future=True, pool_size=20, max_overflow=30, pool_timeout=10, pool_recycle=1800)
     else:
         raise ValueError("Unsupported DB_TYPE. Use 'sqlite' or 'mysql'.")
 
 
-    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    SessionLocal = scoped_session(sessionmaker(bind=engine, autocommit=False, autoflush=False))
     return engine
 
