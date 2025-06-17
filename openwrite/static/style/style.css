@@ -137,10 +137,22 @@ article.main-content {
     text-align: justify;
 }
 
+article.blog-content {
+    font-size: 18px;
+    font-family: "IBMPlexSans";
+    text-align: justify;
+    margin-bottom: 1rem;
+}
+
 article.main-content form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+article.blog-content h3 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 .action-links {
@@ -212,6 +224,10 @@ footer.footer {
     color: #757575;
 }
 
+footer.blog.footer {
+    gap: 3px;
+}
+
 .footer a {
     text-decoration: none;
     color: #757575;
@@ -235,6 +251,8 @@ form input {
     -webkit-box-shadow: 2px 1px 49px -12px rgba(62,29,138,0.87);
     -moz-box-shadow: 2px 1px 49px -4px rgba(62,29,138,0.87);
     border: 0;
+} form input.medium {
+    max-width: 350px;
 }
 
 form input:focus {
@@ -335,6 +353,7 @@ h1.post-title {
     font-family: "IBMPlexSans";
     margin-bottom: 1rem;
     font-size: 40px;
+    margin-top: 1rem;
 }
 
 i.post-date {
@@ -347,6 +366,8 @@ article.post-content {
     gap: 1rem;
     color: #e6e6e6;
     line-height: 30px;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
 }
 
 article.post-content h1 {
@@ -422,6 +443,54 @@ p code {
     color: #abb2bf;
 }
 
+div.postlist_item {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
 #like {
     cursor: pointer;
+}
+
+.flex {
+    display: flex;
+}
+
+.row {
+    flex-direction: row;
+} .column {
+    flex-direction: column;
+}
+
+.small-gap {
+    gap: 5px;
+} .medium-gap {
+    gap: 1rem;
+} .big-gap {
+    gap: 2rem;
+}
+
+.to-right {
+    justify-content: right;
+} .to-left {
+    justify-content: left;
+} .to-center {
+    justify-content: center;
+}
+
+.post-content#posts {
+    gap: 0;
+}
+
+p.column {
+    display: flex;
+    flex-direction: column;
+}
+
+i.caption {
+    padding-left: 3rem;
+    color: #555;
+    margin-top: 5px;
+    font-size: 15px;
 }

@@ -7,9 +7,9 @@
 
     <form method="post" action="/dashboard/create">
         <span class="form-field">{{ g.trans['choose_blog_title'] }}:</span>
-        <input type="text" name="name" style="max-width: 350px" placeholder="my awesome blog" required>
+        <input type="text" name="name" class="medium" placeholder="my awesome blog" required>
         <span class="form-field">{{ g.trans['choose_blog_url'] }}:</span>
-        <input id="url" oninput="change_url();" type="text" name="url" style="max-width: 350px" placeholder="my-awesome-blog" required>
+        <input id="url" oninput="change_url();" type="text" name="url" class="medium" placeholder="my-awesome-blog" required>
 
         <span class="form-field" style="margin-top: 2rem;">{{ g.trans['access_blog_how'] }}?</span>
         <div class="horizontal-fields">

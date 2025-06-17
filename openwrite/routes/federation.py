@@ -97,7 +97,7 @@ def inbox(blog):
             return "Invalid target", 400
 
         followers = []
-        if b.followers:
+        if b.followers is not None:
             followers = json.loads(b.followers)
         if actor not in followers:
             followers.append(actor)
@@ -109,7 +109,7 @@ def inbox(blog):
           "id": f"https://{g.main_domain}/activity/{blog}#accept-{id_.split('/')[-1]}",
           "type": "Accept",
           "actor": f"https://{g.main_domain}/activity/{blog}",
-          "object": object_,
+          "object": data,
           "to": [f"{actor}"]
         }
         
@@ -117,7 +117,8 @@ def inbox(blog):
         inbox = actor_doc.get("endpoints", {}).get("sharedInbox", actor)
 
         from_ = f"https://{g.main_domain}/activity/{blog}"
-        send_activity(activity, b.priv_key, from_, inbox)
+        send_activity(activity, b.priv_key, from_, f"{actor}/inbox")
+        print(f"sent to {actor}")
 
 
         return "", 202
@@ -131,11 +132,11 @@ def inbox(blog):
                 return "Invalid target", 400
 
             followers = []
-            if b.followers:
+            if b.followers not in (None, "null", "NULL"):
                 followers = json.loads(b.followers)
             if actor in followers:
                 followers = followers.remove(actor)
-            b.followers = followers
+            b.followers = json.dumps(followers)
             g.db.commit()
 
         elif object_['type'] == "Like":
@@ -185,16 +186,23 @@ def followers(blog):
         abort(404)
 
     followers = []
-    if b.followers:
+    if b.followers not in (None, "null", "NULL"):
         followers = json.loads(b.followers)
 
-    if not page:
+    if page not in ("true", "1"):
         data = {
           "@context": "https://www.w3.org/ns/activitystreams",
           "id": f"https://{g.main_domain}/followers/{blog}",
           "type": "OrderedCollection",
           "totalItems": len(followers),
-          "first": f"https://{g.main_domain}/followers/{blog}?page=1"
+          "first": {
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"https://{g.main_domain}/followers/{blog}?page=true",
+            "type": "OrderedCollectionPage",
+            "partOf": f"https://{g.main_domain}.followers/{blog}",
+            "totalItems": len(followers),
+            "orderedItems": followers
+          }
         }
 
         return Response(json.dumps(data), content_type="application/activity+json")

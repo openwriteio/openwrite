@@ -42,6 +42,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const [year, month, day] = datePart.split("-").map(Number);
         const [hour, min, sec] = timePart.split(":").map(Number);
         const localdate = new Date(Date.UTC(year, month - 1, day, hour, min, sec));
-        dates[i].innerText = localdate.toLocaleString();
+        dates[i].innerText = localdate.toLocaleString(undefined, {
+        year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+        });
+    }
+
+    var imgs = document.getElementsByTagName("img");
+    for(var i = 0; i < imgs.length; i++) {
+        if(imgs[i].attributes.title != undefined) {
+            var caption = document.createElement("i");
+            caption.classList.add("caption");
+            caption.innerText = imgs[i].attributes.title.value;
+            imgs[i].parentElement.appendChild(caption);
+            imgs[i].parentElement.classList.add("column");
+        }
     }
 });

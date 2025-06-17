@@ -146,7 +146,7 @@ def _generate_rss(blog):
         fe = fg.add_entry()
         fe.title(p.title)
         fe.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{p.link}")
-        fe.description(soup.get_text()[:250] + "...")
+        fe.description(soup.get_text())
         fe.published(p.date.replace(tzinfo=timezone.utc))
 
     return Response(fg.rss_str(pretty=True).decode("utf-8"), mimetype="application/rss+xml")
