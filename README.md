@@ -2,7 +2,6 @@
 openwrite is a minimalist blogging platform built for writing freely, hosting independently, and publishing without noise.
 
 ![version](https://img.shields.io/badge/version-0.3-purple) 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01G1LGG)
 
 ---
 
@@ -38,3 +37,7 @@ If you want to install the package now for testing or contributing:
 2. `pip install .` for installation 
 3. `openwrite init` for initialization of .env
 4. `openwrite run` for testing, `openwrite run -d` for deamonized run
+
+---
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01G1LGG)
