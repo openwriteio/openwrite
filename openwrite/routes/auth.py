@@ -20,7 +20,7 @@ def register():
 
     form_username = request.form.get('username')
     if not re.match(r"^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,28}[a-zA-Z0-9])?$", form_username):
-        return render_template('register.html', error="Wrong username!")
+        return render_template('register.html', error=g.trans['wrong_username'])
     form_password = request.form.get('password')
     form_password2 = request.form.get('password2')
 
@@ -32,7 +32,7 @@ def register():
         return render_template('register.html', error=g.trans["user_exists"])
     
     if request.form.get("frc-captcha-response") is None or request.form.get("frc-captcha-response") == ".ACTIVATED":
-        return render_template('register.html', error="Invalid captcha!")
+        return render_template('register.html', error=g.trans['invalid_captcha'])
 
     captcha_data = {'response': request.form.get("frc-captcha-response"), 'sitekey': g.fcaptcha_sitekey}
 

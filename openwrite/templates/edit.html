@@ -35,7 +35,7 @@
 {% endfor %}
 </tbody>
 </table>
-<div style="display:flex; gap: 1rem; margin-top: 1rem">
+<div class="buttons-list">
 <a href="/dashboard/post/{{ blog.name }}" class="btn purple">{{ g.trans['new_post'] }}</a>
 <a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete_blog'] }}</a>
 </div>

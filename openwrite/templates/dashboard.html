@@ -9,14 +9,19 @@
 <h2><b>{{ blog.name }}</b></h2>
 <span class="bloginfo">{{ g.trans['title'] }}: {{ blog.title }}</span>
 <span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span>
-<div style="display:flex; gap: 1rem; margin-top: 1rem">
+<div class="buttons-list">
 <a href="/dashboard/edit/{{ blog.name }}" class="btn empty">{{ g.trans['edit'] }}</a>
 <a href="/dashboard/post/{{ blog.name }}" class="btn purple">{{ g.trans['new_post'] }}</a>
 <a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{g.trans['delete_blog'] }}</a>
 </div>
 </div>
 {% endfor %}
+<h1 style="padding: 2rem;" class="centered">{{ g.trans['settings'] }}</h1>
+<div class="buttons-list">
 {% if blogs | count < g.blog_limit | int %}
-<a href="/dashboard/create" class="btn purple" style="margin-top: 2rem;">{{ g.trans['create_new_blog'] }}</a>
+<a href="/dashboard/create" class="btn purple">{{ g.trans['create_new_blog'] }}</a>
 {% endif %} 
+<a class="btn purple" href="/dashboard/changepw">{{ g.trans['change_password'] }}</a>
+<a class="btn purple" href="/dashboard/migrate">{{ g.trans['migrate_posts'] }}</a>
+</div>
 {% include 'footer.html' %}

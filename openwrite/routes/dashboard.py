@@ -268,3 +268,11 @@ def delete_post(blog, post):
 
     return redirect(f"/dashboard/edit/{blog_obj.name}")
 
+
+@dashboard_bp.route("/dashboard/changepw")
+def changepw():
+    return render_template("changepw.html")
+
+@dashboard_bp.route("/dashboard/migrate")
+def migrate():
+    return render_template("migrate.html")

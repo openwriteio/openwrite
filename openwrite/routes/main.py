@@ -27,7 +27,7 @@ def set_lang(lang_code):
 
 @main_bp.route("/instances")
 def instances():
-    instances = ["https://openwrite.io"]  # TODO: przenieś do .env albo configu
+    instances = ["https://openwrite.io"]  
     instances_data = []
 
     for i in instances:

@@ -44,6 +44,10 @@
     article.post-content {
         line-height: 23px !important;
     }
+        
+    .buttons-list {
+        flex-direction: column !important;
+    }
 }
 
 body {
@@ -174,7 +178,7 @@ article.blog-content h3 {
     display: flex;
     text-decoration: none;
     border-radius: 8px;
-    width: 13rem;
+    min-width: 13rem;
     height: 3rem;
     justify-content: center;
     align-items: center;
@@ -184,6 +188,7 @@ article.blog-content h3 {
     -moz-box-shadow: 2px 1px 49px -4px rgba(62,29,138,0.87);
     transition: 0.3s;
     cursor: pointer;
+    padding: 1rem;
 }
 
 .btn.purple {
@@ -193,6 +198,13 @@ article.blog-content h3 {
 
 .btn.purple:hover {
     background: #795EB5;
+}
+
+.buttons-list {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 a.btn.empty {
@@ -403,6 +415,7 @@ article.post-content ol, article.post-content ul, article.post-content img {
 .small.btn {
     max-width: 30px;
     max-height: 30px;
+    min-width: 10px;
 }
 
 

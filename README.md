@@ -2,6 +2,7 @@
 openwrite is a minimalist blogging platform built for writing freely, hosting independently, and publishing without noise.
 
 ![version](https://img.shields.io/badge/version-0.3-purple) 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01G1LGG)
 
 ---
 

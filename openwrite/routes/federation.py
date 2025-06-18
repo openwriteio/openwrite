@@ -3,6 +3,7 @@ from openwrite.utils.models import Blog, User, Like, Post
 from openwrite.utils.helpers import verify_http_signature, send_activity, anonymize
 import json
 import requests
+from datetime import datetime, timezone
 
 federation_bp = Blueprint("federation", __name__) 
 
@@ -52,7 +53,9 @@ def activity(blog):
         "name": blog,
         "summary": f"{blog} - Blog on {g.main_domain}",
         "inbox": f"https://{g.main_domain}/inbox/{blog}",
+        "outbox": f"https://{g.main_domain}/outbox/{blog}",
         "followers": f"https://{g.main_domain}/followers/{blog}",
+        "manuallyApprovesFollowers": False,
         "url": url,
         "publicKey": {
             "id": f"https://{g.main_domain}/activity/{blog}#main-key",
@@ -97,7 +100,7 @@ def inbox(blog):
             return "Invalid target", 400
 
         followers = []
-        if b.followers is not None:
+        if b.followers not in (None, "null", "NULL"):
             followers = json.loads(b.followers)
         if actor not in followers:
             followers.append(actor)
@@ -177,6 +180,61 @@ def inbox(blog):
 
     return "", 202
 
+@federation_bp.route("/outbox/<blog>")
+def outbox(blog):
+    page = request.args.get("page")
+    b = g.db.query(Blog).filter_by(name=blog).first()
+    if not b:
+        abort(404)
+
+    p = g.db.query(Post).filter_by(blog=b.id)
+    total = p.count()
+    posts = p.all()
+    first_outbox = {
+      "@context": "https://www.w3.org/ns/activitystreams",
+      "id": f"https://openwrite.io/outbox/{blog}",
+      "type": "OrderedCollection",
+      "totalItems": total,
+      "first": "https://openwrite.io/outbox/main?page=1"
+    }
+
+    if page not in ("true", "1"):
+        return Response(json.dumps(first_outbox), content_type="application/activity+json")
+
+
+    orderedPosts = []
+    if b.access == "path":
+        url = f"https://{g.main_domain}/b/{blog}"
+    else:
+        url = f"https://{blog}.{g.main_domain}"
+    for post in posts:
+        dt = datetime.strptime(str(post.date), "%Y-%m-%d %H:%M:%S")
+        dt = dt.replace(tzinfo=timezone.utc)
+        iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")   
+        orderedPosts.append({
+            "id": f"https://{g.main_domain}/activity/{blog}#{post.link}",
+            "type": "Create",
+            "actor": f"https://{g.main_domain}/activity/{blog}",
+            "object": {
+                "id": f"{url}/{post.link}",
+                "type": "Note",
+                "attributedTo": f"https://{g.main_domain}/activity/{blog}",
+                "content": f"<p>{post.title}</p><a href=\"{url}/{post.link}\">{url}/{post.link}</a>",
+                "published": iso
+            },
+            "published": iso,
+            "to": ["https://www.w3.org/ns/activitystreams#Public"]
+        })
+
+    outbox = {
+      "@context": "https://www.w3.org/ns/activitystreams",
+      "id": f"https://openwrite.io/outbox/{blog}?page={page}",
+      "type": "OrderedCollectionPage",
+      "partOf": f"https://{g.main_domain}/outbox/{blog}",
+      "orderedItems": orderedPosts
+    }
+
+    return Response(json.dumps(outbox), content_type="application/activity+json")
 
 @federation_bp.route("/followers/<blog>")
 def followers(blog):

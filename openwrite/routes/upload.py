@@ -19,10 +19,10 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 @upload_bp.route("/upload_image", methods=["POST"])
 def upload_image():
     if not UPLOAD_ENABLED:
-        return jsonify({"error": "Uploads disabled"}), 403
+        return jsonify({"error": g.trans['uploads_disabled']}), 403
 
     if 'file' not in request.files:
-        return jsonify({"error": "No file"}), 400
+        return jsonify({"error": g.trans['no_file']}), 400
 
     if g.user is None:
         return jsonify({"error": "unauthorized"}), 403
@@ -30,17 +30,17 @@ def upload_image():
     file = request.files['file']
     filename = secure_filename(file.filename)
     if "." not in filename:
-        return jsonify({"error": "Invalid filename"}), 400
+        return jsonify({"error": g.trans['invalid_filename']}), 400
 
     extension = filename.rsplit('.', 1)[1].lower()
     if extension not in ALLOWED_EXTENSIONS:
-        return jsonify({"error": "Unsupported file type. Image only."}), 400
+        return jsonify({"error": g.trans['unsupported_filetype']}), 400
 
     try:
         img = Image.open(file.stream)
         img.verify()
     except Exception:
-        return jsonify({"error": "Uploaded image is not a valid image."}), 400
+        return jsonify({"error": g.trans['not_image']}), 400
 
     file.stream.seek(0)
     user = g.db.query(User).filter_by(id=g.user).first()
@@ -60,7 +60,7 @@ def upload_image():
         if response.ok:
             return jsonify({"url": f"{BUNNY_URL}{filename}"})
         else:
-            return jsonify({"error": "Bunny upload failed", "detail": response.text}), 500
+            return jsonify({"error": g.trans['upload_failed'], "detail": response.text}), 500
 
     elif STORAGE_BACKEND == "local":
         os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
@@ -68,5 +68,5 @@ def upload_image():
         file.save(filepath)
         return jsonify({"url": f"/{LOCAL_UPLOAD_DIR}/{filename}"})
 
-    return jsonify({"error": "Invalid storage backend"}), 500
+    return jsonify({"error": g.trans['upload_failed']}), 500
 

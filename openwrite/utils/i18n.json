@@ -68,7 +68,22 @@
         "discover": "Discover",
         "discover_text": "Here you can find most recent posts from this instance.",
         "yes": "Yes",
-        "no": "No"
+        "no": "No",
+        "change_password": "Change Password",
+        "migrate_posts": "Migrate posts from other vendor",
+        "wrong_username": "Wrong username!",
+        "invalid_captcha": "Invalid captcha!",
+        "uploads_disabled": "Uploads disabled",
+        "invalid_filename": "Invalid filename",
+        "unsupported_filetype": "Unsupported file type",
+        "no_file": "No file",
+        "not_image": "Uploaded file is not a valid image",
+        "upload_failed": "Upload failed",
+        "current_password": "Current password",
+        "new_password": "New password",
+        "choose_vendor": "Choose blog vendor",
+        "select_posts": "Select posts to migrate",
+        "migrate_info": "Data is used only for migration and not saved in any place."
     },
     "pl": {
         "instances": "Instancje",
@@ -138,6 +153,21 @@
         "discover": "Odkrywaj",
         "discover_text": "Tutaj znajdziesz wszystkie najnowsze posty z tej instancji openwrite.",
         "yes": "Tak",
-        "no": "Nie"
+        "no": "Nie",
+        "change_password": "Zmień hasło",
+        "migrate_posts": "Przenieś posty z innej platformy",
+        "wrong_username": "Nieprawidłowa nazwa!",
+        "invalid_captcha": "Captcha nieprawidłowa!",
+        "uploads_disabled": "Przesyłanie plików wyłączone",
+        "invalid_filename": "Nieprawidłowa nazwa pliku",
+        "unsupported_filetype": "Nieprawidłowy typ pliku",
+        "no_file": "Brak pliku",
+        "not_image": "Przesyłany plik nie jest obrazem",
+        "upload_failed": "Niepowodzenie w przesyłaniu",
+        "current_password": "Aktualne hasło",
+        "new_password": "Nowe hasło",
+        "choose_vendor": "Wybierz dostawcę obecnego bloga",
+        "select_posts": "Wybierz wpisy do migracji",
+        "migrate_info": "Dane są używane wyłącznie do migracji wpisów i nie są zapisywane."
     }
 }
