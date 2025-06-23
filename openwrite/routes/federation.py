@@ -42,6 +42,15 @@ def activity(blog):
         url = f"https://{blog}.{g.main_domain}"
     else:
         url = f"https://{g.main_domain}/b/{blog}"
+
+    if b.updated not in ("0000-00-00 00:00:00", "null", "NULL", None):
+        published = b.updated
+    else:
+        published = b.created
+    dt = datetime.strptime(str(published), "%Y-%m-%d %H:%M:%S")
+    dt = dt.replace(tzinfo=timezone.utc)
+    iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")   
+
     actor = {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
@@ -55,6 +64,7 @@ def activity(blog):
         "inbox": f"https://{g.main_domain}/inbox/{blog}",
         "outbox": f"https://{g.main_domain}/outbox/{blog}",
         "followers": f"https://{g.main_domain}/followers/{blog}",
+        "published": iso,
         "manuallyApprovesFollowers": False,
         "url": url,
         "publicKey": {

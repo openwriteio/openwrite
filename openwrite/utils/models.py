@@ -27,6 +27,8 @@ class Blog(Base):
     pub_key = Column(Text, nullable=False)
     priv_key = Column(Text, nullable=False)
     followers = Column(Text)
+    created = Column(DateTime, nullable=False)
+    updated = Column(DateTime)
 
 class Post(Base):
     __tablename__ = "posts"
@@ -40,6 +42,7 @@ class Post(Base):
     content_html = Column(Text, nullable=False)
     author = Column(String(10), nullable=False)
     feed = Column(String(10), nullable=False)
+    updated = Column(DateTime)
 
 class View(Base):
     __tablename__ = "views"

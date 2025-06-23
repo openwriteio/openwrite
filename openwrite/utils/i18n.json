@@ -70,7 +70,7 @@
         "yes": "Yes",
         "no": "No",
         "change_password": "Change Password",
-        "migrate_posts": "Migrate posts from other vendor",
+        "migrate_posts": "Import posts",
         "wrong_username": "Wrong username!",
         "invalid_captcha": "Invalid captcha!",
         "uploads_disabled": "Uploads disabled",
@@ -83,7 +83,8 @@
         "new_password": "New password",
         "choose_vendor": "Choose blog vendor",
         "select_posts": "Select posts to migrate",
-        "migrate_info": "Data is used only for migration and not saved in any place."
+        "migrate_info": "Data is used only for migration and not saved in any place.",
+        "invalid_password": "Invalid password!"
     },
     "pl": {
         "instances": "Instancje",
@@ -155,7 +156,7 @@
         "yes": "Tak",
         "no": "Nie",
         "change_password": "Zmień hasło",
-        "migrate_posts": "Przenieś posty z innej platformy",
+        "migrate_posts": "Importuj posty",
         "wrong_username": "Nieprawidłowa nazwa!",
         "invalid_captcha": "Captcha nieprawidłowa!",
         "uploads_disabled": "Przesyłanie plików wyłączone",
@@ -168,6 +169,7 @@
         "new_password": "Nowe hasło",
         "choose_vendor": "Wybierz dostawcę obecnego bloga",
         "select_posts": "Wybierz wpisy do migracji",
-        "migrate_info": "Dane są używane wyłącznie do migracji wpisów i nie są zapisywane."
+        "migrate_info": "Dane są używane wyłącznie do migracji wpisów i nie są zapisywane.",
+        "invalid_password": "Nieprawidłowe hasło!"
     }
 }

@@ -2,6 +2,9 @@
 {% if error %}
 <div class="error">{{ error }}</div>
 {% endif %}
+{% if message %}
+<div class="message">{{ message }}</div>
+{% endif %}
 <h1 class="centered">{{ g.trans['your_blogs'] }}</h1>
 <h2>{{ blogs | count }}/{{ g.blog_limit }}</h2>
 {% for blog in blogs %}
@@ -22,6 +25,6 @@
 <a href="/dashboard/create" class="btn purple">{{ g.trans['create_new_blog'] }}</a>
 {% endif %} 
 <a class="btn purple" href="/dashboard/changepw">{{ g.trans['change_password'] }}</a>
-<a class="btn purple" href="/dashboard/migrate">{{ g.trans['migrate_posts'] }}</a>
+<a class="btn purple" href="/dashboard/import">{{ g.trans['migrate_posts'] }}</a>
 </div>
 {% include 'footer.html' %}

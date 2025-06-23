@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 import json
+import bcrypt
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -62,6 +63,7 @@ def create_blog():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     ).decode()
 
+    now = datetime.now(timezone.utc)
     try:
         new_blog = Blog(
             owner=g.user,
@@ -69,11 +71,12 @@ def create_blog():
             name=form_url,
             index=form_index,
             access=form_access,
-            description_raw="![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋",
-            description_html="<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1>",
+            description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](https://{g.main_domain}/dashboard/edit/{form_url})",
+            description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"https://{g.main_domain}/dashboard/edit/{form_url}\">dashboard</a></p>",
             css="",
             pub_key=public_pem,
-            priv_key=private_pem
+            priv_key=private_pem,
+            created=now
         )
         g.db.add(new_blog)
         g.db.commit()
@@ -111,12 +114,13 @@ def edit_blog(name):
     if request.method == "GET":
         return render_template("edit.html", blog=blog, posts=posts)
 
+    now = datetime.now(timezone.utc)
     blog.description_raw = request.form.get("description_raw")
     blog.description_html = sanitize_html(request.form.get("description_html"))
     if len(request.form.get("title")) > 30:
         return render_template("edit.html", blog=blog, posts=posts, error="Title too long! Max 30 characters.")
     blog.css = safe_css(request.form.get("css"))
-        
+    blog.updated = now   
     blog.title = request.form.get("title")
     g.db.commit()
 
@@ -245,10 +249,12 @@ def edit_post(blog, post):
         link += f"-{dupes + 1}"
 
     p.title = title
+    now = datetime.now(timezone.utc)
     p.content_raw = request.form.get("content_raw")
     p.content_html = sanitize_html(request.form.get("content"))
     p.author = request.form.get("author")
     p.link = link
+    p.updated = now
     g.db.commit()
     return redirect(f"/dashboard/edit/{blog_obj.name}")
 
@@ -269,10 +275,26 @@ def delete_post(blog, post):
     return redirect(f"/dashboard/edit/{blog_obj.name}")
 
 
-@dashboard_bp.route("/dashboard/changepw")
+@dashboard_bp.route("/dashboard/changepw", methods=['GET', 'POST'])
 def changepw():
-    return render_template("changepw.html")
+    if request.method == "GET":
+       return render_template("changepw.html")
 
-@dashboard_bp.route("/dashboard/migrate")
+    old_pw = request.form.get("current_pass")
+    new_pass = request.form.get("new_pass")
+    new_pass2 = request.form.get("new_pass2")
+    user = g.db.query(User).filter_by(id=g.user).first()
+    if user and bcrypt.checkpw(old_pw.encode('utf-8'), user.password_hash.encode('utf-8')):
+        if new_pass != new_pass2:
+            return render_template("changepw.html", error=g.trans['passwords_dont_match'])
+        hashed = bcrypt.hashpw(new_pass.encode('utf-8'), bcrypt.gensalt())
+        user.password_hash = hashed
+        return redirect("/dashboard")
+
+    else:
+        return render_template("changepw.html", error=g.trans['invalid_password'])
+        
+
+@dashboard_bp.route("/dashboard/import")
 def migrate():
-    return render_template("migrate.html")
+    return render_template("import.html")
