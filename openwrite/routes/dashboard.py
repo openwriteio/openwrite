@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, request, g
 from openwrite.utils.models import Blog, Post, User, View
-from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity
+from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity, is_html
 import requests
 from sqlalchemy import desc
 from datetime import datetime, timezone
@@ -9,6 +9,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 import json
 import bcrypt
+import markdown
+from bs4 import BeautifulSoup
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -295,6 +297,34 @@ def changepw():
         return render_template("changepw.html", error=g.trans['invalid_password'])
         
 
-@dashboard_bp.route("/dashboard/import")
+@dashboard_bp.route("/dashboard/import", methods=['GET', 'POST'])
 def migrate():
-    return render_template("import.html")
+    blogs = g.db.query(Blog).filter_by(owner=g.user).all()
+    if request.method == "GET":
+       return render_template("import.html", blogs=blogs)
+
+    data = request.get_json()
+    posts = data.get("posts")
+    blog_d = data.get("blog")
+
+    blog = g.db.query(Blog).filter_by(name=blog_d).first()
+    if blog.owner != g.user:
+        return redirect("/dashboard")
+
+    for post in posts:
+        title = post['title']
+        content = post['content']
+        date = datetime.strptime(post['date'], "%a, %d %b %Y %H:%M:%S %Z")
+
+        if is_html(content):
+            soup = BeautifulSoup(content, "html.parser")
+            text_content = soup.get_text()
+            html_content = content
+        else:
+            html_content = markdown.markdown(content)
+            text_content = content
+        new_post = Post(blog=blog.id, content_raw=text_content, content_html=html_content, author='0', feed='0', date=date, title=title, link=gen_link(title))
+        g.db.add(new_post)
+        g.db.commit()
+
+    return "ok", 200

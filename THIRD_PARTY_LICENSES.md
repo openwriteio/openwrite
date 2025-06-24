@@ -16,6 +16,11 @@ License: BSD-3
 
 https://github.com/highlightjs/highlight.js
 
+### PapaParse
+License: MIT
+
+https://github.com/mholt/PapaParse
+
 
 ---
 

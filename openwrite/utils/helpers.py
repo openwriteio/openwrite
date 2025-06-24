@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
+from bs4 import BeautifulSoup
 
 
 def sanitize_html(content):
@@ -202,3 +203,7 @@ def send_activity(activity, private_key_pem, from_, to):
         print("[-] Response:", response.text)
 
     return response.status_code
+
+def is_html(content):
+    soup = BeautifulSoup(content, "html.parser")
+    return bool(soup.find())

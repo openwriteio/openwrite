@@ -19,7 +19,8 @@ dependencies = [
     "PyMySQL",
     "gunicorn",
     "beautifulsoup4",
-    "cryptography"
+    "cryptography",
+    "markdown"
 ]
 
 [project.scripts]

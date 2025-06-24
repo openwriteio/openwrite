@@ -1,3 +1,133 @@
 {% include 'header.html' %}
-todo
+<article class="main-content">
+    <h1 class="centered">{{ g.trans['migrate_posts'] }}</h1>
+    <span class="form-field">{{ g.trans['upload_file'] }}</span>
+    <input class="file_upload" type="file" name="posts_file">
+    <form method="post" action="/dashboard/import" style="display:none">
+        <h2 class="form-field">{{ g.trans['select_posts'] }}</h2>
+        <span class="form-field" id="posts">
+        </span>
+        <div class="horizontal-fields">
+        <p>Select blog to import:</p>
+            <select id="blogs">
+                {% for blog in blogs %}
+                <option value="{{ blog.name }}">{{ blog.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="submit" name="import" value="{{ g.trans['send'] }}" class="btn purple" style="margin-top: 2rem">
+    </form>   
+</article>
+<script>
+const file_input = document.querySelector("input[type='file']");
+const form_input = document.querySelector("input[type='submit']");
+let format = '';
+
+
+form_input.addEventListener("click", function(e) {
+    e.preventDefault();
+
+    const inputs = document.querySelectorAll("input[type='checkbox']");
+    const posts = [];
+    for (let i = 0; i < inputs.length; i++) {
+        if (inputs[i].checked === true) {
+            const title = inputs[i].parentElement.children[1].textContent;
+            const content = document.querySelector("input[name='" + i + "_content']").attributes.content.value;
+            const date = document.querySelector("input[name='" + i + "_date']").attributes.content.value;
+            posts.push({ "title": title, "content": content, "date": date});
+        }
+    }
+
+    var e = document.getElementById("blogs");
+    json_data = {"blog": e.options[e.selectedIndex].text, "posts": posts};
+
+    fetch("/dashboard/import", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(json_data)
+    }).then(response => {
+        if (response.ok) {
+            console.log("ok");
+        } else {
+            console.log("not ok");
+        }
+    });
+});
+
+file_input.addEventListener("change", handle_files, false);
+
+function handle_files() {
+    const posts_file = this.files[0];
+    let reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+        if (posts_file.type == "text/xml") {
+            posts = read_xml(reader.result);
+        } else if(posts_file.type == "text/csv") {
+            posts = read_csv(reader.result);
+        }
+
+        show_posts(posts);
+    }, false);
+
+    if (posts_file) {
+        const name = posts_file.name ? posts_file.name : "nope";
+        const type = posts_file.type ? posts_file.type : "nope";
+        if (type == "text/xml" || type == "text/csv") {
+            reader.readAsText(posts_file);
+        } else {
+            alert("filetype " + type + " not supported!");
+        }
+    }
+}
+
+function read_xml(content) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(content, "text/xml");
+    const items = xmlDoc.getElementsByTagName("item");
+    const posts = [];
+
+    for (let i = 0; i < items.length; i++) {
+        const title = items[i].getElementsByTagName("title")[0].textContent.trim();
+        const content = items[i].getElementsByTagName("content:encoded")[0].textContent.trim();
+        const date_string = items[i].getElementsByTagName("pubDate")[0].textContent.trim();
+        const date = new Date(date_string).toUTCString();
+        posts.push({ title, content, date });
+    }
+    return posts;
+
+}
+
+function read_csv(content) {
+    let posts = [];
+    Papa.parse(content, {
+        header: true,
+        complete: (results) => {
+            const res = results.data;
+            for (let i = 0; i < res.length; i++) {
+                if (res[i].title != undefined && res[i].content != undefined && res[i].date != undefined) {
+                    const title = res[i].title;
+                    const content = res[i].content;
+                    const date_string = res[i].date;
+                    const date = new Date(date_string).toUTCString();
+                    posts.push({ title, content, date });
+                }
+            }
+        }
+    });
+    return posts;
+}
+
+function show_posts(posts) {
+    document.querySelector("form").style.display = "block";
+    const posts_el = document.querySelector("#posts");
+    posts_el.innerHTML = '';
+    for (let i = 0; i < posts.length; i++) {
+        posts_el.innerHTML += '<div class="horizontal-fields"><input type="checkbox" name="' + i + '" id="' + i + '"><label for="' + i + '">' + escapeHtml(posts[i].title) + '</label><input type="hidden" name="' + i + '_content" content="' + escapeHtml(posts[i].content) + '"><input type="hidden" name="' + i + '_date" content="' + posts[i].date + '"></div>';
+    }
+}
+
+</script>
 {% include 'footer.html' %}

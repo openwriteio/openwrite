@@ -84,7 +84,15 @@
         "choose_vendor": "Choose blog vendor",
         "select_posts": "Select posts to migrate",
         "migrate_info": "Data is used only for migration and not saved in any place.",
-        "invalid_password": "Invalid password!"
+        "invalid_password": "Invalid password!",
+        "choose_format": "Choose data format",
+        "title_column": "Title column name",
+        "content_column": "Content column name",
+        "date_column": "Date column name",
+        "content_format": "Content format",
+        "step": "Step",
+        "upload_file": "Upload file",
+        "send": "Send"
     },
     "pl": {
         "instances": "Instancje",
@@ -170,6 +178,14 @@
         "choose_vendor": "Wybierz dostawcę obecnego bloga",
         "select_posts": "Wybierz wpisy do migracji",
         "migrate_info": "Dane są używane wyłącznie do migracji wpisów i nie są zapisywane.",
-        "invalid_password": "Nieprawidłowe hasło!"
+        "invalid_password": "Nieprawidłowe hasło!",
+        "choose_format": "Wybierz format danych",
+        "title_column": "Nazwa kolumny z tytułem",
+        "content_column": "Nazwa kolumny z treścią",
+        "date_column": "Nazwa kolumny z datą",
+        "content_format": "Format treści wpisu",
+        "step": "Krok",
+        "upload_file": "Wybierz plik",
+        "send": "Wyślij"
     }
 }
