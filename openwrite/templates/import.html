@@ -1,22 +1,26 @@
 {% include 'header.html' %}
 <article class="main-content">
     <h1 class="centered">{{ g.trans['migrate_posts'] }}</h1>
-    <span class="form-field">{{ g.trans['upload_file'] }}</span>
-    <input class="file_upload" type="file" name="posts_file">
-    <form method="post" action="/dashboard/import" style="display:none">
-        <h2 class="form-field">{{ g.trans['select_posts'] }}</h2>
-        <span class="form-field" id="posts">
-        </span>
-        <div class="horizontal-fields">
-        <p>Select blog to import:</p>
-            <select id="blogs">
-                {% for blog in blogs %}
-                <option value="{{ blog.name }}">{{ blog.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <input type="submit" name="import" value="{{ g.trans['send'] }}" class="btn purple" style="margin-top: 2rem">
-    </form>   
+    <div class="message" style="display: none"></div>
+    <div class="error" style="display: none"></div>
+    <div style="display: flex; flex-direction: column; gap: 1rem">
+        <span class="form-field" style="margin-top: 2rem;">{{ g.trans['import_info'] | safe }}</span>
+        <input class="file_upload" type="file" name="posts_file">
+        <form method="post" action="/dashboard/import" style="display:none">
+            <h2 class="form-field" style="padding: 1rem;">{{ g.trans['select_posts'] }}</h2>
+            <span class="form-field" id="posts">
+            </span>
+            <div class="horizontal-fields" style="display: flex; gap: 1.5rem;">
+            <p style="line-height: 3rem;">Select blog to import:</p>
+                <select id="blogs" style="min-width: 14rem; min-height: 3rem; color: #fff; background: #211932;">
+                    {% for blog in blogs %}
+                    <option value="{{ blog.name }}">{{ blog.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="submit" name="import" value="{{ g.trans['send'] }}" class="btn purple" style="margin-top: 2rem">
+        </form>   
+    </div>
 </article>
 <script>
 const file_input = document.querySelector("input[type='file']");
@@ -39,7 +43,8 @@ form_input.addEventListener("click", function(e) {
     }
 
     var e = document.getElementById("blogs");
-    json_data = {"blog": e.options[e.selectedIndex].text, "posts": posts};
+    var blog_name = e.options[e.selectedIndex].text;
+    json_data = {"blog": blog_name, "posts": posts};
 
     fetch("/dashboard/import", {
         method: 'POST',
@@ -49,9 +54,13 @@ form_input.addEventListener("click", function(e) {
         body: JSON.stringify(json_data)
     }).then(response => {
         if (response.ok) {
-            console.log("ok");
+            const div_msg = document.getElementsByClassName("message")[0];
+            div_msg.style.display = "block";
+            div_msg.innerHTML = '{{ g.trans['import_success1'] }} <a class="link" style="color: #dd98ff" href="/dashboard/edit/'+ blog_name +'">{{ g.trans['import_success2'] }}</a> {{ g.trans['import_success3'] }}';
         } else {
-            console.log("not ok");
+            const div_err = document.getElementsByClassName("error")[0];
+            div_err.style.display = "block";
+            div_err.innerHTML = '{{ g.trans['import_failed'] }}';
         }
     });
 });
@@ -125,7 +134,7 @@ function show_posts(posts) {
     const posts_el = document.querySelector("#posts");
     posts_el.innerHTML = '';
     for (let i = 0; i < posts.length; i++) {
-        posts_el.innerHTML += '<div class="horizontal-fields"><input type="checkbox" name="' + i + '" id="' + i + '"><label for="' + i + '">' + escapeHtml(posts[i].title) + '</label><input type="hidden" name="' + i + '_content" content="' + escapeHtml(posts[i].content) + '"><input type="hidden" name="' + i + '_date" content="' + posts[i].date + '"></div>';
+        posts_el.innerHTML += '<div class="horizontal-fields" style="min-height: 30px; margin-bottom: 1.5rem; display: flex; gap: 1rem; text-align: center;"><input type="checkbox" name="' + i + '" id="' + i + '"><label style="margin-top: 6px;"" for="' + i + '">' + escapeHtml(posts[i].title) + '</label><input type="hidden" name="' + i + '_content" content="' + escapeHtml(posts[i].content) + '"><input type="hidden" name="' + i + '_date" content="' + posts[i].date + '"></div>';
     }
 }
 

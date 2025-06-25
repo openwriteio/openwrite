@@ -22,7 +22,7 @@ def sanitize_html(content):
         'p', 'br', 'hr',
         'strong', 'b', 'em', 'i', 'u',
         'ul', 'ol', 'li',
-        'a', 'img',
+        'a', 'img', 'video',
         'code', 'pre', 'del',
         'blockquote',
         'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'
@@ -33,6 +33,7 @@ def sanitize_html(content):
         'img': ['src', 'alt', 'title', 'width', 'height'],
         'th': ['align'],
         'td': ['align'],
+        'video': ['src', 'width', 'height', 'controls']
     }
 
     return bleach.clean(content, tags=allowed_tags, attributes=allowed_attrs)

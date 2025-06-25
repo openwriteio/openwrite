@@ -92,7 +92,13 @@
         "content_format": "Content format",
         "step": "Step",
         "upload_file": "Upload file",
-        "send": "Send"
+        "send": "Send",
+        "import_info": "In here you can import posts from another platform. Files can be exported from Wordpress(XML) or in general CSV format. <a class=\"link\" href=\"https://main.openwrite.io/import\">Here</a> you can find information about how to prepare data to import.",
+        "import_success1": "Import successful! Go to",
+        "import_success2": "blog dashboard",
+        "import_success3": "to see your posts.",
+        "import_failed": "Error occured! Check your data format."
+
     },
     "pl": {
         "instances": "Instancje",
@@ -186,6 +192,11 @@
         "content_format": "Format treści wpisu",
         "step": "Krok",
         "upload_file": "Wybierz plik",
-        "send": "Wyślij"
+        "send": "Wyślij",
+        "import_info": "W tym miejscu możesz zaimportować wpisy z innej platformy. Przyjmowane są pliki z Wordpress(XML) oraz CSV. <a class=\"link\" href=\"https://main.openwrite.io/import\">Tutaj</a> dowiesz się jak przygotować dane do importu.",
+        "import_success1": "Import wpisów zakończony sukcesem! Przejdź do",
+        "import_success2": "dashboardu bloga",
+        "import_success3": "żeby zobaczyć swoje posty.",
+        "import_failed": "Wystąpił błąd! Sprawdź przesyłane dane."
     }
 }

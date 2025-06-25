@@ -48,6 +48,10 @@
     .buttons-list {
         flex-direction: column !important;
     }
+
+    .horizontal-fields {
+        flex-direction: column !important;
+    }
 }
 
 body {
@@ -291,7 +295,7 @@ select {
 div.error {
     display: flex;
     width: 50%;
-    height: 3rem;
+    min-height: 3rem;
     align-items: center;
     padding: 1rem;
     background: #b75353;
@@ -299,12 +303,13 @@ div.error {
     border-radius: 8px;
     border: 1px solid #461111;
     color: #fff;
+    gap: 1rem;
 }
 
 div.message {
     display: flex;
     width: 50%;
-    height: 3rem;
+    min-height: 3rem;
     align-items: center;
     padding: 1rem;
     background: #344486;
@@ -312,6 +317,7 @@ div.message {
     border-radius: 8px;
     border: 1px solid #0b1a46;
     color: #fff;
+    gap: 1rem;
 }
 
 form input[type=radio], form input[type=checkbox] {
@@ -506,4 +512,74 @@ i.caption {
     color: #555;
     margin-top: 5px;
     font-size: 15px;
+}
+
+.file_upload {
+  width: 8rem;
+}
+
+.file_upload::-webkit-file-upload-button {
+  visibility: hidden;
+}
+.file_upload::before {
+  content: 'Upload file';
+  display: inline-block;
+  background: #694AB0;
+  border-radius: 3px;
+  padding: 5px 8px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 10pt;
+  color: #fff;
+  transition: 0.3s;
+  min-width: 7rem;
+  text-align: center;
+  min-height: 1.5rem;
+  line-height: 1.7rem;
+}
+.file_upload:hover::before {
+  background: #795EB5;
+}
+.file_upload:active::before {
+  background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
+}
+
+input[type="checkbox"] {
+    width: 20px; /* Szerokość checkboxa */
+    height: 20px; /* Wysokość checkboxa */
+    appearance: none; /* Usunięcie domyślnego stylu */
+    background-color: #302747;
+    border: 2px solid #383246;
+    border-radius: 3px; /* Zaokrąglenie rogów */
+    cursor: pointer; /* Kursor wskazujący */
+    position: relative; /* Umożliwia pozycjonowanie pseudo-elementów */
+}
+
+input[type="checkbox"]:checked {
+    background-color: #694AB0; /* Tło po zaznaczeniu */
+    border: 2px solid #694AB0; /* Ramka po zaznaczeniu */
+}
+
+input[type="checkbox"]:checked::after {
+    content: ''; /* Pseudo-element */
+    position: absolute; /* Pozycjonowanie */
+    left: 9px; /* Odstęp od lewej */
+    top: 2px; /* Odstęp od góry */
+    width: 12px; /* Szerokość ptaszka */
+    height: 16px; /* Wysokość ptaszka */
+    border: solid white; /* Kolor ptaszka */
+    border-width: 0 2px 2px 0; /* Kształt ptaszka */
+    transform: rotate(45deg); /* Obrót ptaszka */
+}
+
+a.link {
+    color: #795EB5;
+    text-decoration: none;
+}
+
+a.link:hover {
+    text-decoration: underline;
 }
