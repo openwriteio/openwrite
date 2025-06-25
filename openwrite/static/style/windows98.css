@@ -1,0 +1,101 @@
+body {
+    background: #ff00f7;
+    background: linear-gradient(180deg, rgba(255, 0, 247, 1) 0%, rgba(148, 230, 255, 1) 100%);
+    font-family: "Georgia", "Times New Roman";
+}
+
+.container {
+    margin-top: 1rem;
+    background: #b7b7b7;
+    border: 2px solid #FFFFFF; 
+    box-shadow: 
+        2px 2px 0 #000000, 
+        1px 1px 0 #FFFFFF, 
+        inset 1px 1px 0 #FFFFFF, 
+        inset -1px -1px 0 #A0A0A0; 
+}
+
+h1.blog-name {
+    font-size: 16px;
+    margin-left: 10px;
+    margin-top: 4px;
+}
+
+h1.blog-name a {
+    color: #fff;
+    font-family: "Georgia", "Times New Roman";
+    display: inline-flex; 
+    align-items: center;  
+    gap: 0.5rem;          
+    text-decoration: none;
+}
+
+h1.blog-name a::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url(https://openwrite.b-cdn.net/world-2.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+header.header {
+    height: 1rem;
+    background: #0000a3;
+    background: linear-gradient(90deg,rgba(0, 0, 163, 1) 0%, rgba(0, 195, 255, 1) 100%);
+}
+
+article.blog-content {
+    font-family: "Georgia", "Times New Roman";
+    color: #222;
+    padding: 1rem;
+}
+
+article.post-content {
+    color: #222;
+}
+
+article.post-content a {
+    color: #0000FF;
+}
+
+.header #menu a {
+    margin-right: 4px;
+}
+
+h1.post-title {
+    font-family: "Georgia", "Times New Roman";
+}
+
+h1.post-title::before {
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-image: url(https://openwrite.b-cdn.net/write_file-1.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}   
+
+p code {
+    background: #fff;
+    color: #000;
+    font-family: "Courier New", "Courier";
+    box-shadow: -2px -2px 0px 0px rgba(59,59,59,0.75) inset;
+    -webkit-box-shadow: -2px -2px 0px 0px rgba(59,59,59,0.75) inset;
+    -moz-box-shadow: -2px -2px 0px 0px rgba(59,59,59,0.75) inset;
+    display: inline-block;
+    padding: 2px;
+}
+
+i.post-date::before {
+    content: '';
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    background-image: url(https://openwrite.b-cdn.net/calendar-0.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin-right: 5px;
+}

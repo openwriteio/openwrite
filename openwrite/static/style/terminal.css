@@ -1,0 +1,37 @@
+body {
+    background: #000;
+    color: #FFF;
+}
+
+article.blog-content {
+    font-family: "Courier New";
+}
+
+h1.blog-name a {
+    font-family: "Courier New";
+    color: #00FF00;
+}
+
+h1.post-title {
+    font-family: "Courier New";
+}
+
+.header #menu a svg {
+    fill: #00FF00;
+}
+
+h1.blog-name a::before {
+    content: '> ';
+}
+
+.blog-content .post-title {
+    color: #545454;
+}
+
+i.post-date {
+    color: #545454;
+}
+
+article.post-content a {
+    color: #00FF00;
+}

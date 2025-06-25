@@ -11,7 +11,7 @@
             <span class="form-field" id="posts">
             </span>
             <div class="horizontal-fields" style="display: flex; gap: 1.5rem;">
-            <p style="line-height: 3rem;">Select blog to import:</p>
+            <p style="line-height: 3rem;">{{ g.trans['select_blog_to_import'] }}</p>
                 <select id="blogs" style="min-width: 14rem; min-height: 3rem; color: #fff; background: #211932;">
                     {% for blog in blogs %}
                     <option value="{{ blog.name }}">{{ blog.name }}</option>
