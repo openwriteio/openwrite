@@ -136,6 +136,7 @@ body {
     text-align: center;
     width: 100%;
     display: block;
+    margin: 1rem;
 }
 
 article.main-content {
@@ -432,8 +433,13 @@ table.posts {
 a.action {
     text-decoration: none;
     color: #d2c5ff;
+    margin: 0.5rem;
 } a.action:hover {
     text-decoration: underline;
+}
+
+table.table {
+    padding: 1rem;
 }
 
 table.table thead {
@@ -453,8 +459,16 @@ table.table tbody td {
     text-align: center;
 }
 
+table.table tbody tr {
+    height: 3rem;
+}
+
 table.table tbody tr:nth-child(odd) td {
     background: #684ab1;
+}
+
+table.table tbody tr:nth-child(even) td {
+    background: #2c2244;
 }
 
 p code {

@@ -98,7 +98,12 @@
         "import_success2": "blog dashboard",
         "import_success3": "to see your posts.",
         "import_failed": "Error occured! Check your data format.",
-        "select_blog_to_import": "Select blog to import data to"
+        "select_blog_to_import": "Select blog to import data to",
+        "remove_admin": "Remove admin",
+        "add_admin": "Make admin",
+        "are_you_sure_make_admin": "Are you sure to add admin rights to",
+        "are_you_sure_remove_admin": "Are you sure to remove admin rights from",
+        "add_user": "Add user"
     },
     "pl": {
         "instances": "Instancje",
@@ -198,6 +203,11 @@
         "import_success2": "dashboardu bloga",
         "import_success3": "żeby zobaczyć swoje posty.",
         "import_failed": "Wystąpił błąd! Sprawdź przesyłane dane.",
-        "select_blog_to_import": "Wybierz blog, do którego trafią wpisy"
+        "select_blog_to_import": "Wybierz blog, do którego trafią wpisy",
+        "remove_admin": "Zabierz prawa administratora",
+        "add_admin": "Mianuj administratorem",
+        "are_you_sure_make_admin": "Czy na pewno chcesz nadać prawa administratora dla",
+        "are_you_sure_remove_admin": "Czy na pewno zabrać uprawnienia administratora ",
+        "add_user": "Dodaj użytkownika"
     }
 }

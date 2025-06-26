@@ -43,3 +43,7 @@ venv/
 # System files
 .DS_Store
 Thumbs.db
+
+# Certs
+cert.pem
+key.pem

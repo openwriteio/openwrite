@@ -1,6 +1,6 @@
 {% include 'header.html' %}
 
-<h1 class="centered">{{ g.trans["register_on_this_instance"] }}</h1>
+<h1 class="centered">{% if add %}{{ g.trans['add_user'] }}{% else %}{{ g.trans['register_on_this_instance'] }}{% endif %}</h1>
 
 <article class="main-content">
     {% if error %}
@@ -9,15 +9,15 @@
     {% if message %}
     <div class="message">{{ message }}</div>
     {% endif %}
-    <form method="post" action="/register">
+    <form method="post" action="{% if add %}/admin/add_user{% else %}/register{% endif %}">
         <span class="form-field">{{ g.trans["username"] }}:</span>
         <input type="text" name="username">       
         <span class="form-field">{{ g.trans["password"] }}:</span>
         <input type="password" name="password">
         <span class="form-field">{{ g.trans["password2"] }}:</span>
         <input type="password" name="password2">
-        <input type="submit" name="sub" value="{{ g.trans["register"] }}" class="btn purple" style="margin-top: 1rem;">
-        {% if g.captcha %}
+        <input type="submit" name="sub" value="{% if add %}{{ g.trans['add_user'] }}{% else %}{{ g.trans['register'] }}{% endif %}" class="btn purple" style="margin-top: 1rem;">
+        {% if g.captcha and captcha != "0" %}
         <div class="frc-captcha" data-sitekey="{{ g.fcaptcha_sitekey }}"></div>
         {% endif %}
     </form>

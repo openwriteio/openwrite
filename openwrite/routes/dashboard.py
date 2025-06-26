@@ -279,6 +279,9 @@ def delete_post(blog, post):
 
 @dashboard_bp.route("/dashboard/changepw", methods=['GET', 'POST'])
 def changepw():
+    if g.user is None:
+        return redirect("/login")
+
     if request.method == "GET":
        return render_template("changepw.html")
 
@@ -299,6 +302,9 @@ def changepw():
 
 @dashboard_bp.route("/dashboard/import", methods=['GET', 'POST'])
 def migrate():
+    if g.user is None:
+        return redirect("/login")
+
     blogs = g.db.query(Blog).filter_by(owner=g.user).all()
     if request.method == "GET":
        return render_template("import.html", blogs=blogs)

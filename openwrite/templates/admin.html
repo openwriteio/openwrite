@@ -1,4 +1,11 @@
 {% include 'header.html' %}
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}   
+<h1 class="centered">Actions</h1>
+<div style="display: flex; justify-content: center; gap: 1rem;">
+<a style="width: 5rem;" class="btn purple" href="/admin/add_user">{{ g.trans['add_user'] }}</a>
+</div>
 <h1 class="centered">Blogs</h1>
 <table class="table">
 <thead>
@@ -6,7 +13,7 @@
 </thead>
 <tbody>
 {% for blog in blogs %}
-<tr><td>{{ blog.title }}</td><td>{{ blog.name }}</td><td>{{ blog.owner }}</td><td><a class="action" href="/admin/delete_blog/{{ blog.name }}" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">Delete</a></td></tr>
+<tr><td>{{ blog.title }}</td><td>{{ blog.name }}</td><td>{{ blog.ownername }}</td><td><a class="action" href="/admin/delete_blog/{{ blog.name }}" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">Delete</a></td></tr>
 {% endfor %}
 </tbody>
 </table>
@@ -18,7 +25,19 @@
 </thead>
 <tbody>
 {% for user in users %}
-<tr><td>{{ user.username }}</td><td>{{ user.admin }}</td><td><a class="action" href="/admin/delete_user/{{ user.username }}" onclick="return confirm('{{ g.trans['are_you_sure_user'] }} {{ user.username }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">Delete</a></td></tr>
+<tr><td>{{ user.username }}</td>
+<td>{% if user.admin > 0 %}{{ g.trans['yes'] }}{% else %}{{ g.trans['no'] }}{% endif %}</td>
+<td>
+    <a class="action" href="/admin/delete_user/{{ user.username }}" onclick="return confirm('{{ g.trans['are_you_sure_user'] }} {{ user.username }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">Delete</a>
+{% if user.admin > 0 %}
+{% if user.username != "admin" %}
+    <a class="action" onclick="return confirm('{{ g.trans['are_you_sure_remove_admin'] }} {{ user.username }}?')" href="/admin/remove_admin/{{ user.username }}">{{ g.trans['remove_admin'] }}</a>
+{% endif %}
+{% else %}
+    <a class="action" onclick="return confirm('{{ g.trans['are_you_sure_make_admin'] }} {{ user.username }}?')" href="/admin/make_admin/{{ user.username }}">{{ g.trans['add_admin'] }}</a>
+{% endif %}
+</td>
+</tr>
 {% endfor %}
 </tbody>
 </table>
