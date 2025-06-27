@@ -22,3 +22,7 @@ i.post-date {
 svg {
     fill: #9b4d10;
 }
+
+pre code.hljs {
+    background: #fff;
+}

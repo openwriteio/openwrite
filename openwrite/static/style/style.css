@@ -69,7 +69,7 @@ body {
     flex-direction: column;
     width: 60%;
     margin: 0 auto;
-    min-height: 100vh;
+    min-height: 60vh;
 }
 
 .container-row-fluid {
@@ -415,8 +415,13 @@ article.post-content a:hover {
 }
 
 article.post-content ol, article.post-content ul, article.post-content img {
-    padding-left: 2.5rem;
     max-width: 90%;
+    height: auto;
+}
+
+article.post-content p > img {
+    display: block;
+    margin: 0 auto;
 }
 
 .small.btn {
@@ -433,7 +438,6 @@ table.posts {
 a.action {
     text-decoration: none;
     color: #d2c5ff;
-    margin: 0.5rem;
 } a.action:hover {
     text-decoration: underline;
 }
@@ -522,10 +526,10 @@ p.column {
 }
 
 i.caption {
-    padding-left: 3rem;
     color: #555;
-    margin-top: 5px;
     font-size: 15px;
+    display: block;
+    text-align: center;
 }
 
 .file_upload {

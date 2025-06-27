@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, request, g
 from openwrite.utils.models import Blog, Post, User, View
-from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity, is_html
+from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity, is_html, get_themes
 import requests
 from sqlalchemy import desc
 from datetime import datetime, timezone
@@ -113,20 +113,29 @@ def edit_blog(name):
         v = g.db.query(View).filter(View.post == p.id, View.blog == blog.id).count()
         p.views = v
 
+    themes = get_themes()
+
     if request.method == "GET":
-        return render_template("edit.html", blog=blog, posts=posts)
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes)
 
     now = datetime.now(timezone.utc)
     blog.description_raw = request.form.get("description_raw")
     blog.description_html = sanitize_html(request.form.get("description_html"))
     if len(request.form.get("title")) > 30:
-        return render_template("edit.html", blog=blog, posts=posts, error="Title too long! Max 30 characters.")
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, error="Title too long! Max 30 characters.")
     blog.css = safe_css(request.form.get("css"))
     blog.updated = now   
     blog.title = request.form.get("title")
+    selected_theme = request.form.get("theme")
+    themes_plus = themes
+    themes_plus.append("default")
+    if selected_theme not in themes_plus:
+        print(f"{selected_theme} in {themes}?")
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, error="Wrong theme!")
+    blog.theme = selected_theme
     g.db.commit()
 
-    return render_template("edit.html", blog=blog, posts=posts)
+    return render_template("edit.html", blog=blog, posts=posts, themes=themes)
 
 @dashboard_bp.route("/dashboard/post/<name>", methods=['GET', 'POST'])
 def new_post(name):
@@ -255,6 +264,7 @@ def edit_post(blog, post):
     p.content_raw = request.form.get("content_raw")
     p.content_html = sanitize_html(request.form.get("content"))
     p.author = request.form.get("author")
+    p.feed = request.form.get("feed")
     p.link = link
     p.updated = now
     g.db.commit()

@@ -20,7 +20,9 @@ dependencies = [
     "gunicorn",
     "beautifulsoup4",
     "cryptography",
-    "markdown"
+    "markdown",
+    "md2gemini",
+    "jetforce"
 ]
 
 [project.scripts]

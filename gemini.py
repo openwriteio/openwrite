@@ -5,7 +5,7 @@ from jetforce import (
     JetforceApplication, Request, Response, Status
 )
 from openwrite.utils.db import init_engine, SessionLocal
-from openwrite.utils.models import Blog, Post  
+from openwrite.utils.models import Blog, Post, User 
 from md2gemini import md2gemini
 
 session = None
@@ -58,9 +58,14 @@ class OpenwriteGemini(JetforceApplication):
                           .first())
             if not post:
                 return Response(Status.NOT_FOUND, "Post not found")
-
+    
+            user = session.query(User).filter_by(id=blog.owner).first()
+            post.authorname = user.username
             gemtext = f"# {post.title}\n\n"
-            gemtext += md2gemini(post.content_raw)
+            gemtext += f"{post.date} "
+            if post.author != "0":
+                gemtext += f"by {post.authorname}"
+            gemtext += f"\n\n{md2gemini(post.content_raw)}"
             return Response(Status.SUCCESS, "text/gemini", gemtext)
 
         finally:

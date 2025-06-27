@@ -1,0 +1,50 @@
+body {
+    background: #fff;
+}
+
+.container {
+    background: #fff8e7; 
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    border: 1px solid #e0d6c3;
+    font-family: 'Georgia', serif;
+    line-height: 1.6;
+}
+
+h1.blog-name a {
+    color: #ffa489;
+}
+
+#menu a svg {
+    fill: #ffa489;
+}
+
+article.post-content {
+    color: #828282;
+}
+
+article.blog-content h3 {
+    color: #353535;
+}
+
+article.post-content a {
+    color: #ffa489;
+}
+
+h1.post-title {
+    color: #6c6c6c;
+}
+
+i.post-date {
+    color: #7c7c7c;
+}
+
+pre code.hljs {
+    background: #ffffea;
+}
+
+p code {
+    background: #ffffea;
+}

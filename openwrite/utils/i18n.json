@@ -103,7 +103,12 @@
         "add_admin": "Make admin",
         "are_you_sure_make_admin": "Are you sure to add admin rights to",
         "are_you_sure_remove_admin": "Are you sure to remove admin rights from",
-        "add_user": "Add user"
+        "add_user": "Add user",
+        "select_theme": "Select theme",
+        "default": "Default",
+        "see_themes": "See themes",
+        "custom_css": "Custom CSS",
+        "css_unsafe_info": "Unsafe values like url(), @keyframes, @import, expression, javascript and animation will be removed."
     },
     "pl": {
         "instances": "Instancje",
@@ -208,6 +213,11 @@
         "add_admin": "Mianuj administratorem",
         "are_you_sure_make_admin": "Czy na pewno chcesz nadać prawa administratora dla",
         "are_you_sure_remove_admin": "Czy na pewno zabrać uprawnienia administratora ",
-        "add_user": "Dodaj użytkownika"
+        "add_user": "Dodaj użytkownika",
+        "select_theme": "Wybierz motyw",
+        "default": "Domyślny",
+        "see_themes": "Zobacz motywy",
+        "custom_css": "Własny CSS",
+        "css_unsafe_info": "Niebezpieczne wartości jak url(), @keyframes, @import, expression, javascript i animation zostaną usunięte."
     }
 }

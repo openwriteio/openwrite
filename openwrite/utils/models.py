@@ -29,6 +29,7 @@ class Blog(Base):
     followers = Column(Text)
     created = Column(DateTime, nullable=False)
     updated = Column(DateTime)
+    theme = Column(String(50), nullable=False)
 
 class Post(Base):
     __tablename__ = "posts"

@@ -208,3 +208,8 @@ def send_activity(activity, private_key_pem, from_, to):
 def is_html(content):
     soup = BeautifulSoup(content, "html.parser")
     return bool(soup.find())
+
+def get_themes():
+    css_files = [f.replace(".css", "") for f in os.listdir("./openwrite/static/style/themes/") if f.endswith(".css")]
+
+    return css_files

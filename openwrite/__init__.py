@@ -112,7 +112,7 @@ def create_app():
     @app.errorhandler(Exception)
     def handle_exception(e):
         app.logger.exception(f"Unhandled exception! {e}")
-        return "Internal Server Error", 500
+        return "Other error", 500
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):

@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
             caption.classList.add("caption");
             caption.innerText = imgs[i].attributes.title.value;
             imgs[i].parentElement.appendChild(caption);
-            imgs[i].parentElement.classList.add("column");
+            //imgs[i].parentElement.classList.add("column");
         }
     }
 });
