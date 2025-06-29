@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2025-06-29
+### Added
+- Logging to logs/ directory(optional)
+
+### Fixed
+- Adding admin user to database and printing generated password
+- run command now runs gunicorn normally, debugrun for werkzeug
+- Translations didn't work in new instances
+
 ## [0.6.0] - 2025-06-27
 ### Added
 - Theme selection

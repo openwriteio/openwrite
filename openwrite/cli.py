@@ -4,11 +4,27 @@ import os
 import shutil
 import requests
 import time
+from multiprocessing import Process
 from dotenv import load_dotenv
 from .utils.create_db import init_db
+from contextlib import redirect_stdout, redirect_stderr
+from .gemini import create_gemini
+import bcrypt
 
 load_dotenv()
 cwd = os.getcwd()
+
+class Tee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for s in self.streams:
+            s.write(data)
+
+    def flush(self):
+        for s in self.streams:
+            s.flush()
 
 def print_banner():
     click.secho(r"""
@@ -38,6 +54,7 @@ def init():
     if os.path.exists(".env"):
         click.confirm(".env already exists. Overwrite?", abort=True)
 
+    mode = click.prompt("How are you willing to run openwrite?\n1. Multi-user\n2. Single user\n", type=int, default=1)
     domain = click.prompt("Choose a domain (ex. openwrite.io)")
     key = os.urandom(16).hex()
     upload = click.confirm("Enable media upload?", default=True)
@@ -59,7 +76,20 @@ def init():
         dbpath = click.prompt("sqlite database path", default=f"{cwd}/db.sqlite")
     listen_ip = click.prompt("What IP should openwrite listen on?", default=str("0.0.0.0"))
     listen_port = click.prompt("What port should openwrite listen on?", default="8081")
-    blog_limit = click.prompt("Limit blogs per user? Set to 0 for no limit", default="3")
+    blog_limit = 0
+    if mode == 2:
+        blog_limit = click.prompt("Limit blogs per user? Set to 0 for no limit", default="3")
+    gemini = click.confirm("Run gemini service too?", default=True)
+    if gemini:
+        gemini_port = click.prompt("What port gemini should listen on?", default="1965")
+        cert_path = click.prompt("Path to generate certificates for gemini", default=f"{cwd}/")
+        click.echo("[+] Generating certificate for Gemini...\n\n")
+        subprocess.Popen(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cert_path}/key.pem", "-out", f"{cert_path}/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"])
+
+    logs_enabled = click.confirm("Enable logging?", default=True)
+    if logs_enabled:
+        logs_dir = click.prompt("Path to save logs", default=f"{cwd}/logs/")
+        
     
 
     with open(".env", "w") as f:
@@ -79,32 +109,127 @@ def init():
         f.write(f"SELF_REGISTER={'yes' if register else 'no'}\n")
         f.write(f"DB_TYPE={dbtype}\n")
         f.write(f"DB_PATH={dbpath}\n")
+        if mode == 1:
+            f.write(f"MODE=multi\n")
+        else:
+            f.write(f"MODE=single\n")
+
+        f.write(f"GEMINI={'yes' if gemini else 'no'}\n")
+        if gemini:
+            f.write(f"GEMINI_PORT={gemini_port}\n")
+            f.write(f"GEMINI_CERTS={cert_path}\n")
+
+        f.write(f"LOGS={'yes' if logs_enabled else 'no'}\n")
+        if logs_enabled:
+            f.write(f"LOGS_DIR={logs_dir}")
 
     click.echo("[+] .env file created")
     click.echo("[*] Initializing database..")
     init_db(dbtype, dbpath)
     click.echo("[+] Database initialized")
+    click.echo("[*] Adding admin user...")
+    from .utils.models import User
+    from .utils.db import init_engine, SessionLocal
+    init_engine(dbtype, dbpath)
+    from .utils.db import SessionLocal
+    admin_password = os.urandom(16).hex()
+    hashed = bcrypt.hashpw(admin_password.encode("utf-8"), bcrypt.gensalt())
+    admin_user = User(username="admin", email="", password_hash=hashed.decode("utf-8"), verified=1, admin=1)
+    SessionLocal.add(admin_user)
+    SessionLocal.commit()
+    SessionLocal.close()
+    click.echo(f"[+] Admin user added! Your credentials:\n\nLogin: admin\nPassword: {admin_password}")
+    if logs_enabled and not os.path.exists(logs_dir):
+        os.makedirs(logs_dir, exist_ok=True)
 
 @cli.command()
 @click.option("-d", "--daemon", is_flag=True, help="Run in background (daemon)")
 def run(daemon):
+    print_banner()
+
+    ip = os.getenv("IP", "0.0.0.0")
+    port = int(os.getenv("PORT", 8080))
+    gemini = os.getenv("GEMINI", "yes").lower() == "yes"
+    gemini_port = int(os.getenv("GEMINI_PORT", 1965))
+
+    logs_enabled = os.getenv("LOGS_ENABLED", "no").lower() == "yes"
+    logs_dir = os.getenv("LOGS_DIR", "./logs")
+
+    gunicorn_cmd = [
+        "gunicorn",
+        "-w", "4",
+        "openwrite:create_app()",
+        "--bind", f"{ip}:{port}"
+    ]
+
+    if daemon:
+        click.echo(f"[+] Openwrite listening on {ip}:{port}")
+
+        gunicorn_out = open(os.path.join(logs_dir, "openwrite.log"), "a") if logs_enabled else subprocess.DEVNULL
+        subprocess.Popen(gunicorn_cmd + ["--daemon"], stdout=gunicorn_out, stderr=subprocess.STDOUT)
+
+        if gemini:
+            click.echo(f"[+] Gemini listening on {ip}:{gemini_port}")
+            gemini_log = open(os.path.join(logs_dir, "gemini.log"), "a") if logs_enabled else subprocess.DEVNULL
+            subprocess.Popen(["python3", "openwrite/launch_gemini.py"], stdout=gemini_log, stderr=subprocess.STDOUT)
+
+    else:
+        gunicorn_proc = subprocess.Popen(
+            gunicorn_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+
+        gemini_proc = None
+        if gemini:
+            click.echo(f"[+] Gemini started on {ip}:{gemini_port}")
+
+            if logs_enabled:
+                def run_and_log():
+                    with open(os.path.join(logs_dir, "gemini.log"), "a") as f:
+                        tee = Tee(sys.stdout, f)
+                        with redirect_stdout(tee), redirect_stderr(tee):
+                            create_gemini()
+                gemini_proc = Process(target=run_and_log)
+            else:
+                gemini_proc = Process(target=create_gemini)
+
+            gemini_proc.start()
+
+        try:
+            if logs_enabled:
+                with open(os.path.join(logs_dir, "openwrite.log"), "a") as logfile:
+                    for line in gunicorn_proc.stdout:
+                        print("[gunicorn]", line, end='')
+                        logfile.write(line)
+                        logfile.flush()
+            else:
+                for line in gunicorn_proc.stdout:
+                    print("[gunicorn]", line, end='')
+
+            gunicorn_proc.wait()
+        except KeyboardInterrupt:
+            print("\n[!] Interrupted by user. Shutting down.")
+            gunicorn_proc.terminate()
+            if gemini_proc:
+                gemini_proc.terminate()
+
+@cli.command()
+def debugrun():
     from openwrite import create_app
     print_banner()
     ip = os.getenv("IP", "0.0.0.0")
     port = int(os.getenv("PORT", 8080))
-    if daemon:
-        click.echo(f"[+] Openwrite listening on {ip}:{port}")
-        subprocess.Popen(["gunicorn", "-w", "4", "openwrite:create_app()", "--bind", f"{ip}:{port}", "--daemon"])
-    else:
-        app = create_app()
-        app.run(host=ip, port=port)
+    app = create_app()
+    app.run(host=ip, port=port)
 
 
 @cli.command()
 def install_service():
     service_name = "openwrite"
     service_file = f"""[Unit]
-Description=OpenWrite Blog
+Description=openwrite instance
 After=network.target
 
 [Service]
@@ -128,35 +253,6 @@ WantedBy=multi-user.target
     os.system(f"systemctl daemon-reexec")
     click.echo(f"[+] Service {service_name} installed")
 
-
-@cli.command()
-def check_update():
-    click.echo("[*] Checking for updates..")
-    # np. na podstawie jakiegoś endpointu z wersją lub tagów GitHuba
-    try:
-        response = requests.get("https://raw.githubusercontent.com/twojuser/openwrite/main/version.txt")
-        remote = response.text.strip()
-        local = "0.1.0"  # TODO: dynamicznie z pakietu
-        if remote != local:
-            click.echo(f"[*] New version available: {remote} (current {local})")
-        else:
-            click.echo("[+] Openwrite is in latest version")
-    except Exception as e:
-        click.echo(f"Update-check error: {e}")
-
-
-@cli.command()
-def update():
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    click.echo("[*] Backuping current directory")
-    backup_dir = f"backup-{timestamp}"
-    shutil.copytree(".", backup_dir, ignore=shutil.ignore_patterns("backup-*", "__pycache__", "*.pyc"))
-    click.echo(f"[+] Backup initialized at {backup_dir}")
-
-    click.echo("[*] Pulling newest code")
-    os.system("git pull")
-    click.echo("[+] Update completed")
-
 @cli.command()
 @click.option("--service", is_flag=True, help="Stop systemd service")
 def stop(service):
@@ -167,13 +263,19 @@ def stop(service):
         click.echo("[*] Searching Gunicorn processes")
         try:
             out = subprocess.check_output(["pgrep", "-f", "gunicorn.*openwrite:create_app"], text=True)
+            out_gemini = subprocess.check_output(["pgrep", "-f", "gemini\.py"], text=True)
             pids = out.strip().splitlines()
+            pids_gemini = out_gemini.strip().splitlines()
             for pid in pids:
                 click.echo(f"[*] Killing {pid}")
                 os.kill(int(pid), 15)
-            click.echo("[+] Gunicorn soppted")
+            for gemini_pid in pids_gemini:
+                click.echo(f"[*] Killing {gemini_pid}")
+                os.kill(int(gemini_pid), 15)
+            click.echo("[+] Gunicorn stopped")
+            click.echo("[+] Gemini stoppted")
         except subprocess.CalledProcessError:
-            click.echo("[-] Could not find Gunicorn processes")
+            click.echo("[-] Could not find any openwrite processes")
 
 
 if __name__ == "__main__":

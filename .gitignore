@@ -47,3 +47,6 @@ Thumbs.db
 # Certs
 cert.pem
 key.pem
+
+# DB
+db.sqlite

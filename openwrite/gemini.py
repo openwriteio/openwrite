@@ -89,14 +89,17 @@ class OpenwriteGemini(JetforceApplication):
         finally:
             session.close()
 
-if __name__ == "__main__": 
+def create_gemini():
     from jetforce.server import GeminiServer
+    gemini_certs = os.getenv("GEMINI_CERTS")
+    main_domain = os.getenv("DOMAIN")
     GeminiServer(
         OpenwriteGemini(),
         host="0.0.0.0",
-        port=1965,
-        certfile="./cert.pem", 
-        keyfile="./key.pem",
-        hostname="openwrite.io"
+        port=int(os.getenv("GEMINI_PORT", 1965)),
+        
+        certfile=f"{gemini_certs}/cert.pem", 
+        keyfile=f"{gemini_certs}/key.pem",
+        hostname=main_domain
     ).run()
 
