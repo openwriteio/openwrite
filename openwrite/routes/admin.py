@@ -7,7 +7,7 @@ admin_bp = Blueprint("admin", __name__)
 
 @admin_bp.route("/admin")
 def admin():
-    if g.user is None or g.isadmin == 0:
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
     blogs = g.db.query(Blog).all()
@@ -20,7 +20,7 @@ def admin():
 
 @admin_bp.route("/admin/delete_blog/<blog>")
 def admin_delete_blog(blog):
-    if g.user is None or g.isadmin == 0:
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
     b = g.db.query(Blog).filter_by(name=blog).first()
@@ -32,7 +32,7 @@ def admin_delete_blog(blog):
 
 @admin_bp.route("/admin/delete_user/<username>")
 def admin_delete_user(username):
-    if g.user is None or g.isadmin == 0:
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
     if username == "admin":
@@ -53,7 +53,7 @@ def admin_delete_user(username):
 
 @admin_bp.route("/admin/make_admin/<username>")
 def admin_make_admin(username):
-    if g.user is None or g.isadmin == 0:
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
     user = g.db.query(User).filter_by(username=username).first()
@@ -67,7 +67,7 @@ def admin_make_admin(username):
 
 @admin_bp.route("/admin/remove_admin/<username>")
 def admin_remove_admin(username):
-    if g.user is None or g.isadmin == 0:
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
     if username == "admin":
@@ -84,6 +84,8 @@ def admin_remove_admin(username):
 
 @admin_bp.route("/admin/add_user", methods=['GET', 'POST'])
 def admin_add_user():
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
+        return redirect("/")
     if request.method == "GET":
         return render_template("register.html", add="1", captcha="0")
     

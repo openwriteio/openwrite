@@ -26,6 +26,8 @@ def dashboard():
 
 @dashboard_bp.route("/dashboard/create", methods=['GET', 'POST'])
 def create_blog():
+    if g.mode == "single":
+        return redirect("/")
     if g.user is None:
         return redirect("/login")
 
@@ -78,6 +80,7 @@ def create_blog():
             css="",
             pub_key=public_pem,
             priv_key=private_pem,
+            theme="default",
             created=now
         )
         g.db.add(new_blog)
@@ -88,6 +91,8 @@ def create_blog():
 
 @dashboard_bp.route("/dashboard/delete/<name>")
 def delete_blog(name):
+    if g.mode == "single":
+        return redirect("/")
     if g.user is None:
         return redirect("/login")
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify, g, send_from_directory, abort
 from openwrite.utils.models import User
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -13,7 +13,7 @@ STORAGE_BACKEND = os.getenv("UPLOAD_STORAGE", "local")
 BUNNY_API_KEY = os.getenv("BUNNY_API_KEY")
 BUNNY_ZONE = os.getenv("BUNNY_STORAGE_ZONE")
 BUNNY_URL = os.getenv("BUNNY_STORAGE_URL")
-LOCAL_UPLOAD_DIR = os.getenv("UPLOAD_FOLDER", "uploads")
+LOCAL_UPLOAD_DIR = os.getenv("UPLOAD_PATH", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 @upload_bp.route("/upload_image", methods=["POST"])
@@ -28,7 +28,7 @@ def upload_image():
         return jsonify({"error": "unauthorized"}), 403
 
     file = request.files['file']
-    filename = secure_filename(file.filename)
+    filename = file.filename
     if "." not in filename:
         return jsonify({"error": g.trans['invalid_filename']}), 400
 
@@ -66,7 +66,16 @@ def upload_image():
         os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
         filepath = os.path.join(LOCAL_UPLOAD_DIR, filename)
         file.save(filepath)
-        return jsonify({"url": f"/{LOCAL_UPLOAD_DIR}/{filename}"})
+        return jsonify({"url": f"/uploads/{filename}"})
 
     return jsonify({"error": g.trans['upload_failed']}), 500
 
+@upload_bp.route("/uploads/<file>")
+def get_file(file):
+    filename = secure_filename(file)
+    filepath = os.path.join(LOCAL_UPLOAD_DIR, filename)
+
+    if not os.path.isfile(filepath):
+        abort(404)
+
+    return send_from_directory(LOCAL_UPLOAD_DIR, filename)

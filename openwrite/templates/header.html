@@ -20,6 +20,7 @@
         <header class="header">
             <a href="/"><div id="logo"> </div></a>
             <div id="menu">
+                {% if g.mode == "multi" %}
                 <a href="/discover">{{ g.trans['discover'] }}</a>
                 <a href="/instances">{{ g.trans["instances"] }}</a>
                 <a href="https://main.openwrite.io/hosting">{{ g.trans["hosting"] }}</a>
@@ -33,6 +34,9 @@
                 {% endif %}
                 {% if g.isadmin == 1 %}
                 <a href="/admin">Admin</a>
+                {% endif %}
+                {% else %}
+                <a href="/dashboard">Dashboard</a>
                 {% endif %}
             </div>
         </header>

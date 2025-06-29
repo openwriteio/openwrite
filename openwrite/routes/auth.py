@@ -12,11 +12,11 @@ def register():
     if g.user is not None:
         return redirect("/dashboard")
 
-    if request.method == "GET":
-        return render_template('register.html')
-
     if not g.register_enabled:
         return redirect("/")
+
+    if request.method == "GET":
+        return render_template('register.html')
 
     form_username = request.form.get('username')
     if not re.match(r"^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,28}[a-zA-Z0-9])?$", form_username):

@@ -57,6 +57,7 @@ def create_app():
         if lang not in translations:
             lang = "en"
 
+        g.mode = os.getenv("MODE")
         g.trans = translations[lang]
         g.alltrans = translations
         g.lang = lang

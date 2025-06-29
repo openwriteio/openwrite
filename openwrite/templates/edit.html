@@ -2,12 +2,23 @@
 {% if error %}
 <div class="error">{{ error }}</div>
 {% endif %}
-<h1 class="centered">blog: {{ blog.name }}</h1>
+<h1 class="centered">
+{% if g.mode == "multi" %}
+blog: {{ blog.name }}
+{% else %}
+{{ g.trans['edit'] }} blog
+{% endif %}
+</h1>
 <div class="bloginfo">
 
 <form method="post" action="/dashboard/edit/{{ blog.name }}">
 <span class="bloginfo">{{ g.trans['title'] }}: <input type="text" name="title" value="{{ blog.title }}"></span><br>
-<span class="bloginfo">URL: <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span><br>
+<span class="bloginfo">URL: 
+{% if g.mode == "multi" %}
+<a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span><br>
+{% else %}
+<a href="http://{{ g.main_domain }}" target="_blank" style="text-decoration: none; color: #fff">{{ g.main_domain }}</a><br>
+{% endif %}
 <span class="bloginfo">{{ g.trans['select_theme'] }}: 
     <select name="theme" style="min-width: 14rem; min-height: 2rem; color: #fff; background: #211932;">
         <option value="default" {% if blog.theme == "default" %}selected{% endif %}>{{ g.trans['default'] }}</option>

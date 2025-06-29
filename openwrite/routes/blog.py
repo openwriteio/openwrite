@@ -11,6 +11,8 @@ blog_bp = Blueprint("blog", __name__)
 
 @blog_bp.route("/b/<blog>")
 def show_blog(blog):
+    if g.mode == "single":
+        return redirect("/")
     blog = g.db.query(Blog).filter_by(name=blog).first()
     if blog is None:
         return redirect("/")
@@ -25,6 +27,8 @@ def show_blog(blog):
 
 @blog_bp.route("/", subdomain="<blog>")
 def show_subblog(blog):
+    if g.mode == "single":
+        return redirect("/")
     blog = g.db.query(Blog).filter_by(name=blog).first()
     if blog is None:
         return redirect(f"https://{os.getenv('DOMAIN')}/")
@@ -38,6 +42,8 @@ def show_subblog(blog):
 
 @blog_bp.route("/b/<blog>/<post>")
 def show_post(blog, post):
+    if g.mode == "single":
+        return redirect("/")
     blog = g.db.query(Blog).filter_by(name=blog).first()
     if blog is None:
         return redirect("/")
@@ -72,6 +78,8 @@ def show_post(blog, post):
 
 @blog_bp.route("/<post>", subdomain="<blog>")
 def show_subpost(blog, post):
+    if g.mode == "single":
+        return redirect("/")
     blog = g.db.query(Blog).filter_by(name=blog).first()
     if blog is None:
         return redirect(f"https://{os.getenv('DOMAIN')}/")
@@ -100,6 +108,34 @@ def show_subpost(blog, post):
     likes = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id).count()
     one_post.likes = likes
     liked = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id, Like.hash == anonymize(get_ip())).count()
+    one_post.liked = liked
+
+    user = g.db.query(User).filter_by(id=g.user) if g.user else None
+    return render_template("post.html", blog=blog, post=one_post, user=user, views=v)
+
+@blog_bp.route("/p/<post>")
+def single_showpost(post):
+    if g.mode == "multi":
+        return redirect("/")
+
+    blog = g.db.query(Blog).filter_by(id=1).first()
+    one_post = g.db.query(Post).filter(Post.blog == 1, Post.link == post).first()
+    if not one_post:
+        return redirect("/")
+
+    post_author = g.db.query(User).filter_by(id=1).first()
+    one_post.authorname = post_author.username
+
+    ip = anonymize(get_ip())
+    v = g.db.query(View).filter(View.blog == 1, View.post == one_post.id, View.hash == ip).count()
+    if v < 1:
+        new_view = View(blog=1, post=one_post.id, hash=ip)
+        g.db.add(new_view)
+        g.db.commit()
+
+    likes = g.db.query(Like).filter(Like.blog == 1, Like.post == one_post.id).count()
+    one_post.likes = likes
+    liked = g.db.query(Like).filter(Like.blog == 1, Like.post == one_post.id, Like.hash == anonymize(get_ip())).count()
     one_post.liked = liked
 
     user = g.db.query(User).filter_by(id=g.user) if g.user else None

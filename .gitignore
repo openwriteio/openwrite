@@ -50,3 +50,7 @@ key.pem
 
 # DB
 db.sqlite
+
+# temps
+logs/
+uploads/

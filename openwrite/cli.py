@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 from .utils.create_db import init_db
 from contextlib import redirect_stdout, redirect_stderr
 from .gemini import create_gemini
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+from datetime import datetime, timezone
 import bcrypt
 
 load_dotenv()
@@ -64,7 +67,10 @@ def init():
             bunny_api = click.prompt("Bunny.net API key")
             bunny_storagezone = click.prompt("Bunny.net storage zone")
             bunny_storageurl = click.prompt("Bunny.net storage URL")
-    register = click.prompt("Allow self-register?", default=True)
+        else:
+            upload_path = click.prompt("Path to save files?", default=f"{cwd}/uploads")
+    if mode == 1:
+        register = click.prompt("Allow self-register?", default=True)
     dbtype = click.prompt("Choose database type: sqlite / mysql", default="sqlite")
     if dbtype == "mysql":
         mysql_user = click.prompt("MySQL user")
@@ -77,14 +83,14 @@ def init():
     listen_ip = click.prompt("What IP should openwrite listen on?", default=str("0.0.0.0"))
     listen_port = click.prompt("What port should openwrite listen on?", default="8081")
     blog_limit = 0
-    if mode == 2:
+    if mode == 1:
         blog_limit = click.prompt("Limit blogs per user? Set to 0 for no limit", default="3")
     gemini = click.confirm("Run gemini service too?", default=True)
     if gemini:
         gemini_port = click.prompt("What port gemini should listen on?", default="1965")
         cert_path = click.prompt("Path to generate certificates for gemini", default=f"{cwd}/")
         click.echo("[+] Generating certificate for Gemini...\n\n")
-        subprocess.Popen(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cert_path}/key.pem", "-out", f"{cert_path}/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"])
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cert_path}/key.pem", "-out", f"{cert_path}/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
 
     logs_enabled = click.confirm("Enable logging?", default=True)
     if logs_enabled:
@@ -105,8 +111,11 @@ def init():
                 f.write(f"BUNNY_API_KEY={bunny_api}\n")
                 f.write(f"BUNNY_STORAGE_ZONE={bunny_storagezone}\n")
                 f.write(f"BUNNY_STORAGEURL={bunny_storageurl}\n")
+            else:
+                f.write(f"UPLOAD_PATH={upload_path}\n")
         f.write("BLOG_LIMIT=3\n")
-        f.write(f"SELF_REGISTER={'yes' if register else 'no'}\n")
+        if mode == 1:
+            f.write(f"SELF_REGISTER={'yes' if register else 'no'}\n")
         f.write(f"DB_TYPE={dbtype}\n")
         f.write(f"DB_PATH={dbpath}\n")
         if mode == 1:
@@ -128,7 +137,7 @@ def init():
     init_db(dbtype, dbpath)
     click.echo("[+] Database initialized")
     click.echo("[*] Adding admin user...")
-    from .utils.models import User
+    from .utils.models import User, Blog, Post
     from .utils.db import init_engine, SessionLocal
     init_engine(dbtype, dbpath)
     from .utils.db import SessionLocal
@@ -141,6 +150,42 @@ def init():
     click.echo(f"[+] Admin user added! Your credentials:\n\nLogin: admin\nPassword: {admin_password}")
     if logs_enabled and not os.path.exists(logs_dir):
         os.makedirs(logs_dir, exist_ok=True)
+
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+
+    private_pem = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode()
+
+    public_pem = key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode()
+
+    now = datetime.now(timezone.utc)
+
+    new_blog = Blog(
+        owner=1, 
+        name="default", 
+        title=domain, 
+        index="on", 
+        access="domain",
+        description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](http://{domain}/dashboard/edit/default)",
+        description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"http://{domain}/dashboard/edit/default\">dashboard</a></p>",
+        css="",
+        pub_key=public_pem,
+        priv_key=private_pem,
+        theme="default",
+        created=now
+    )
+
+    SessionLocal.add(new_blog)
+    SessionLocal.commit()
 
 @cli.command()
 @click.option("-d", "--daemon", is_flag=True, help="Run in background (daemon)")

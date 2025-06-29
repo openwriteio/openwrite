@@ -13,9 +13,15 @@ main_bp = Blueprint("main", __name__)
 
 @main_bp.route("/")
 def index():
-    if g.user is not None:
-        return redirect("/dashboard")
-    return render_template('index.html')
+    if g.mode == "multi":
+        if g.user is not None:
+            return redirect("/dashboard")
+        return render_template('index.html')
+
+    elif g.mode == "single":
+        blog = g.db.query(Blog).filter_by(name="default").first()
+        posts = g.db.query(Post).filter_by(blog=blog.id).all()
+        return render_template('blog.html', blog=blog, posts=posts)
 
 @main_bp.route("/set-lang/<lang_code>")
 def set_lang(lang_code):
@@ -27,6 +33,8 @@ def set_lang(lang_code):
 
 @main_bp.route("/instances")
 def instances():
+    if g.mode == "single":
+        return redirect("/")
     instances = ["https://openwrite.io"]  
     instances_data = []
 
@@ -53,6 +61,8 @@ def instances():
 
 @main_bp.route("/discover")
 def discover():
+    if g.mode == "single":
+        return redirect("/")
     posts = g.db.query(Post).filter_by(feed=1).order_by(desc(Post.id)).all()
     for p in posts:
         b = g.db.query(Blog).filter_by(id=p.blog).first()
