@@ -1,0 +1,64 @@
+body {
+    background: #201917;
+}
+
+header.header {
+    border-bottom: unset;
+}
+
+.container {
+    max-width: 700px;
+    padding: 1rem 0.5rem;
+    font-family: 'Georgia', serif;
+    line-height: 1.6;
+}
+
+h1.blog-name a {
+    color: #202020;
+}
+
+#menu a svg {
+    fill: #F59D84;
+}
+
+article.post-content {
+    color: #F59D84;
+}
+
+article.blog-content {
+    border: 1px solid #F59D84;
+    padding: 2rem;
+}
+
+article.blog-content h3 {
+    color: #F59D84;
+}
+
+article.post-content a {
+    color: #ffa489;
+    text-decoration: underline;
+}
+
+h1.post-title {
+    color: #fff;
+}
+
+h1.blog-name {
+    font-family: "Courier New", "Courier";
+    font-size: 18px;
+    background: #F59D84;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+i.post-date {
+    color: #7c7c7c;
+}
+
+pre code.hljs {
+    background: #1A0E0B;
+}
+
+p code {
+    background: #ffffea;
+}

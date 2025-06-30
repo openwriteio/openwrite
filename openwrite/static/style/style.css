@@ -90,8 +90,7 @@ body {
     font-family: "IBMPlexSans";
 }
 
-.header #logo {
-    background-image: url('/static/logo.png');
+.header #logo { background-image: url('/static/logo.png');
     background-size: contain;
     background-repeat: no-repeat;
 
@@ -432,6 +431,11 @@ article.post-content p > img {
     max-width: 30px;
     max-height: 30px;
     min-width: 10px;
+}
+
+.small.btn.active {
+    border: 2px solid #D4C1FF;
+    color: #D4C1FF;
 }
 
 

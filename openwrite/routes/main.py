@@ -3,7 +3,7 @@ import os
 import json
 import datetime
 import requests
-from openwrite.utils.models import Post, Blog
+from openwrite.utils.models import Post, Blog, Home, Settings
 import time
 from openwrite import start_time
 
@@ -14,9 +14,8 @@ main_bp = Blueprint("main", __name__)
 @main_bp.route("/")
 def index():
     if g.mode == "multi":
-        if g.user is not None:
-            return redirect("/dashboard")
-        return render_template('index.html')
+        home = g.db.query(Home).filter_by(name="hometext").all()
+        return render_template('index.html', home=home)
 
     elif g.mode == "single":
         blog = g.db.query(Blog).filter_by(name="default").first()

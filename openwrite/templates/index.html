@@ -1,15 +1,9 @@
 {% include 'header.html' %}
-            <h1 class="centered">{{ g.trans["header_text"]|safe }}</h1>
-            
-            <article class="main-content">
-                <p>
-                    {{ g.trans["home_text"]|safe }}
-                </p>
-            </article>
-            <div class="action-links">
-                <a class="btn purple" href="/register">{{ g.trans["register_here"] }}</a>
-                <span class="or-separator">{{ g.trans["or"] }}</span>
-                <a class="btn empty" href="#">{{ g.trans["self_host"] }}</a>
-            </div>
+
+                    {% for h in home %}
+                    {% if h.language == g.lang %}
+                    {{ h.content | safe }}
+                    {% endif %}
+                    {% endfor %}
 
 {% include 'footer.html' %}

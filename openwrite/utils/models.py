@@ -2,6 +2,23 @@ from sqlalchemy import Column, Integer, String, Date, Text, DateTime
 from sqlalchemy.sql import func
 from openwrite.db.base import Base
 
+class Settings(Base):
+    __tablename__ = "settings"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    value = Column(Text, nullable=False)
+
+class Home(Base):
+    __tablename__ = "home"
+
+    id = Column(Integer, primary_key=True)
+    language = Column(String(10))
+    name = Column(String(100), nullable=False)
+    type = Column(String(30), nullable=False)
+    url = Column(String(200))
+    content = Column(Text)
+
 class User(Base):
     __tablename__ = "users"
     
@@ -61,8 +78,3 @@ class Like(Base):
     blog = Column(Integer, nullable=False)
     post = Column(Integer, nullable=False)
 
-class Info(Base):
-    __tablename__ = "info"
-
-    id = Column(Integer, primary_key=True)
-    start_time = Column(Integer)

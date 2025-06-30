@@ -1,10 +1,10 @@
 from flask import Flask, g
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
-from openwrite.utils.models import Info
 import os
 from .utils.helpers import generate_nonce, get_ip
 import time
+from .utils.models import Settings
 
 start_time = time.time()
 
@@ -69,6 +69,9 @@ def create_app():
         g.captcha = os.getenv("CAPTCHA_ENABLED", "no") == "yes"
         g.fcaptcha_sitekey = os.getenv("FRIENDLY_CAPTCHA_SITEKEY", "key")
         g.fcaptcha_apikey = os.getenv("FRIENDLY_CAPTCHA_APIKEY", "api_key")
+        g.staticdir = app.static_folder
+        g.staticurl = app.static_url_path
+        g.settings = g.db.query(Settings).all()
 
         if session.get("userid") is not None:
             g.user = session.get("userid")

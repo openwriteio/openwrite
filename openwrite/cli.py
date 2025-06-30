@@ -150,42 +150,43 @@ def init():
     click.echo(f"[+] Admin user added! Your credentials:\n\nLogin: admin\nPassword: {admin_password}")
     if logs_enabled and not os.path.exists(logs_dir):
         os.makedirs(logs_dir, exist_ok=True)
+    
+    if mode == 2:
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048
+        )
 
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048
-    )
+        private_pem = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ).decode()
 
-    private_pem = key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
-    ).decode()
+        public_pem = key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode()
 
-    public_pem = key.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    ).decode()
+        now = datetime.now(timezone.utc)
 
-    now = datetime.now(timezone.utc)
+        new_blog = Blog(
+            owner=1, 
+            name="default", 
+            title=domain, 
+            index="on", 
+            access="domain",
+            description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](http://{domain}/dashboard/edit/default)",
+            description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"http://{domain}/dashboard/edit/default\">dashboard</a></p>",
+            css="",
+            pub_key=public_pem,
+            priv_key=private_pem,
+            theme="default",
+            created=now
+        )
 
-    new_blog = Blog(
-        owner=1, 
-        name="default", 
-        title=domain, 
-        index="on", 
-        access="domain",
-        description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](http://{domain}/dashboard/edit/default)",
-        description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"http://{domain}/dashboard/edit/default\">dashboard</a></p>",
-        css="",
-        pub_key=public_pem,
-        priv_key=private_pem,
-        theme="default",
-        created=now
-    )
-
-    SessionLocal.add(new_blog)
-    SessionLocal.commit()
+        SessionLocal.add(new_blog)
+        SessionLocal.commit()
 
 @cli.command()
 @click.option("-d", "--daemon", is_flag=True, help="Run in background (daemon)")

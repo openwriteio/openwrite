@@ -1,9 +1,14 @@
 from flask import Blueprint, render_template, redirect, g, request
-from openwrite.utils.models import Blog, User
+from openwrite.utils.models import Blog, User, Settings, Home
 import re
 import bcrypt
+from werkzeug.utils import secure_filename
+from PIL import Image
+import os
 
 admin_bp = Blueprint("admin", __name__)
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 @admin_bp.route("/admin")
 def admin():
@@ -112,3 +117,54 @@ def admin_add_user():
         print(e)
         g.db.rollback()
         return render_template('register.html', error=g.trans["error"], add="1", captcha="0")
+
+
+@admin_bp.route("/admin/settings", methods=['GET', 'POST'])
+def admin_settings():
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
+        return redirect("/")
+
+    settings = g.db.query(Settings).all()
+    hometext = g.db.query(Home).filter_by(name="hometext").all()
+    settings_dict = {s.name: s.value for s in settings}
+
+    if request.method == "GET":
+        return render_template("settings.html", settings=settings_dict, hometext=hometext)
+
+    hometexts = {}
+    pattern = re.compile(r'^hometext_(\w+)$')
+    for key, value in request.form.items():
+        match = pattern.match(key)
+        if match:
+            lang = match.group(1)
+            hometexts[lang] = value
+
+    if "logo" in request.files and request.files['logo'].filename != "":
+        file = request.files['logo']
+        filename = secure_filename(file.filename)
+        if "." not in filename:
+            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="Wrong file!")
+
+        extension = filename.rsplit('.', 1)[1].lower()
+        if extension not in ALLOWED_EXTENSIONS:
+            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="Wrong extension!")
+
+        try:
+            img = Image.open(file.stream)
+            img.verify()
+        except Exception:
+            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="File is not image!")
+
+        file.stream.seek(0)
+
+        filepath = os.path.join(g.staticdir, filename)
+        file.save(filepath)
+        logo_file = filepath
+        logo_q = g.db.query(Settings).filter_by(name="logo").first()
+        logo_q.value = f"{g.staticurl}/{filename}"
+        g.db.commit()
+        settings_dict['logo'] = f"{g.staticurl}/{filename}"
+    for h in hometext:
+        h.content = hometexts[h.language]
+    g.db.commit()
+    return render_template("settings.html", settings=settings_dict, hometext=hometext)

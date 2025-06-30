@@ -1,0 +1,63 @@
+{% include 'header.html' %}
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+<h1 class="centered">{{ g.trans['settings'] }}</h1>
+<form method="post" action="/admin/settings" enctype="multipart/form-data">
+<h2>Logo</h2>
+<img src="{{ settings['logo'] }}" style="max-width: 400px" id="logo">
+<h3>Update logo</h3><input type="file" class="file_input" name="logo"><br><br>
+<h2>Homepage text (HTML)</h2>
+<div class="bloginfo">
+<div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
+{% for text in hometext %}
+{% if text.language == "en" %}
+<a class="small btn empty active" href="#" id="{{ text.language }}" data-action="{{ text.language }}">{{ text.language }}</a>
+{% endif %}
+{% endfor %}
+{% for text in hometext %}
+{% if text.language != "en" %}
+<a class="small btn empty" href="#" id="{{ text.language }}" data-action="{{ text.language }}">{{ text.language }}</a>
+{% endif %}
+{% endfor %}
+</div>
+
+{% for text in hometext %}
+{% if text.language == "en" %}
+<textarea id="en" class="post_content" name="hometext_en" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">{{ text.content }}</textarea>
+{% endif %}
+{% endfor %}
+
+{% for text in hometext %}
+{% if text.language != "en" %}
+<textarea id="{{ text.language }}" class="post_content" style="display: none;" name="hometext_{{ text.language }}" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">{{ text.content }}</textarea>
+{% endif %}
+{% endfor %}
+
+<input type="submit" class="btn purple" value="Save">
+</form>
+
+<script>
+
+document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const action = this.getAttribute('data-action');
+        document.querySelectorAll('textarea:not(#' + action + ')').forEach(area => {
+            area.style.display = "none";
+        });
+
+        document.querySelector('textarea#' + action).style.display = "block";
+
+        document.querySelectorAll('[data-action]').forEach(btn2 => {
+            btn2.classList.remove("active");
+        });
+
+        btn.classList.add("active");       
+        
+    });
+});
+
+</script>
+
+{% include 'footer.html' %}

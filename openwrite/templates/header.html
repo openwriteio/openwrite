@@ -18,9 +18,16 @@
 <body>
     <div class="container">
         <header class="header">
-            <a href="/"><div id="logo"> </div></a>
+                {% for s in g.settings %}
+               {% if s.name == "logo" %}
+               <a href="/"><div style="background-image: url('{{ s.value }}');" id="logo"> </div></a>
+               {% endif %}
+               {% endfor %}
             <div id="menu">
                 {% if g.mode == "multi" %}
+                {% if g.user %}
+                <a href="/dashboard">Dashboard</a>
+                {% endif %}
                 <a href="/discover">{{ g.trans['discover'] }}</a>
                 <a href="/instances">{{ g.trans["instances"] }}</a>
                 <a href="https://main.openwrite.io/hosting">{{ g.trans["hosting"] }}</a>

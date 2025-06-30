@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-06-30
+### Added
+- Logo change in admin panel
+- Home text change in admin panel
+- New theme: warm night
+
 ## [0.7.0] - 2025-06-29
 ### Added
 - Single-blog mode
