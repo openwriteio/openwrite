@@ -69,6 +69,7 @@ class View(Base):
     hash = Column(String(64), nullable=False)
     blog = Column(Integer, nullable=False)
     post = Column(Integer, nullable=False)
+    date = Column(DateTime)
 
 class Like(Base):
     __tablename__ = "likes"
@@ -77,4 +78,5 @@ class Like(Base):
     hash = Column(String(64), nullable=False)
     blog = Column(Integer, nullable=False)
     post = Column(Integer, nullable=False)
+    date = Column(DateTime)
 

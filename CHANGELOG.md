@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2025-07-01
+### Fixed
+- Added current path in dashboard to go back
+- Preview now shows current theme
+- Preview now shows correct date and time
+- warm night theme colors
+
 ## [0.8.0] - 2025-06-30
 ### Added
 - Logo change in admin panel

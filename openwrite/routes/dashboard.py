@@ -231,6 +231,7 @@ def preview():
         'author': request.form.get('author'),
         'blog_title': request.form.get('blog_title'),
         'blog_name': request.form.get('blog_name'),
+        'theme': request.form.get('theme'),
         'date': request.form.get('date'),
         'author_name': u.username
     }
@@ -349,3 +350,7 @@ def migrate():
         g.db.commit()
 
     return "ok", 200
+
+@dashboard_bp.route("/dashboard/stats/<blog>")
+def stats(blog):
+    return render_template("stats.html")

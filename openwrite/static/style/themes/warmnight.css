@@ -39,6 +39,15 @@ article.post-content a {
     text-decoration: underline;
 }
 
+article.post-content h1, article.post-content h2, article.post-content h3, article.post-content h4, article.post-content h5 {
+    color: #ffd2c5;
+}
+
+article.post-content blockquote {
+    color: #8d7068;
+    border-left: 4px solid #8d7068;
+}
+
 h1.post-title {
     color: #fff;
 }

@@ -109,7 +109,9 @@
         "see_themes": "See themes",
         "custom_css": "Custom CSS",
         "css_unsafe_info": "Unsafe values like url(), @keyframes, @import, expression, javascript and animation will be removed.",
-        "your_blog": "your blog"
+        "your_blog": "your blog",
+        "statistics": "Statistics",
+        "contact": "Contact"
     },
     "pl": {
         "instances": "Instancje",
@@ -220,6 +222,8 @@
         "see_themes": "Zobacz motywy",
         "custom_css": "Własny CSS",
         "css_unsafe_info": "Niebezpieczne wartości jak url(), @keyframes, @import, expression, javascript i animation zostaną usunięte.",
-        "your_blog": "twój blog"
+        "your_blog": "twój blog",
+        "statistics": "Statystyki",
+        "contact": "Contact"
     }
 }

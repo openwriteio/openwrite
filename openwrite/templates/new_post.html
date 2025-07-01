@@ -2,6 +2,7 @@
 {% if error %}
 <div class="error">{{ error }}</div>
 {% endif %}
+<div><a href="/dashboard" class="action">Dashboard</a> > <a href="/dashboard/edit/{{ blog.name }}" class="action">{{ blog.title }}</a> > {% if post %}{{ post.title }}{% else %}{{ g.trans['new_post'] }}{% endif %}</div>
 <div class="container-row-fluid">
     <h3>{% if post %}{{ g.trans['editing_post'] }}: {{ post.title }}{% else %}{{ g.trans['new_post_on'] }}: {{ blog.name }}{% endif %}</h3>
     <a target="_blank" href="/dashboard/preview" class="btn purple" id="preview">{{ g.trans['preview'] }}</a>
@@ -61,14 +62,15 @@
         tempForm.method = 'POST';
         tempForm.action = '/dashboard/preview';
         tempForm.target = '_blank';
-        const date = new Date();
+        const date = getUTCDate();
         const inputs = {
             title: title,
             content: content,
             author: author ? '1' : '0',
             blog_name: "{{ blog.name }}",
             blog_title: "{{ blog.title }}",
-            date: date.toLocaleDateString()
+            theme: "{{ blog.theme }}",
+            date: date
         };
 
         for (let key in inputs) {

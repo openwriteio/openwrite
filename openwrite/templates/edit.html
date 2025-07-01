@@ -2,6 +2,7 @@
 {% if error %}
 <div class="error">{{ error }}</div>
 {% endif %}
+<div><a href="/dashboard" class="action">Dashboard</a> > {{ blog.title }}</div>
 <h1 class="centered">
 {% if g.mode == "multi" %}
 blog: {{ blog.name }}

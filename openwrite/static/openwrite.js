@@ -74,3 +74,15 @@ function escapeHtml(text) {
   
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
+
+function getUTCDate() {
+    const now = new Date(); 
+    const utcYear = now.getUTCFullYear();
+    const utcMonth = String(now.getUTCMonth() + 1).padStart(2, '0'); 
+    const utcDate = String(now.getUTCDate()).padStart(2, '0');
+    const utcHours = String(now.getUTCHours()).padStart(2, '0');
+    const utcMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+    const utcSeconds = String(now.getUTCSeconds()).padStart(2, '0');
+
+    return `${utcYear}-${utcMonth}-${utcDate} ${utcHours}:${utcMinutes}:${utcSeconds}`;
+}
