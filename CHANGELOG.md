@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2025-07-03
+### Added
+- Statistics page in dashboard: charts with views, browsers and OS
+- Tests for building: single-blog mode
+- Blog description in gemini
+
+### Fixed
+- Path to themes
+- Wrong date in sqlite
+
 ## [0.8.1] - 2025-07-01
 ### Fixed
 - Added current path in dashboard to go back

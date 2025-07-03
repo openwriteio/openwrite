@@ -9,8 +9,15 @@ from .utils.models import Settings
 start_time = time.time()
 
 
-def create_app():
-    load_dotenv()
+def create_app(test_config=None):
+    if test_config is None:
+        load_dotenv()
+        db_type = os.getenv("DB_TYPE", "sqlite")
+        db_path = os.getenv("DB_PATH", "db.sqlite")
+    else:
+        db_type = test_config.get("DB_TYPE", "sqlite")
+        db_path = test_config.get("DB_PATH", "data.db")
+        load_dotenv(test_config.get("env"), override=True)
     app = Flask(__name__, template_folder="templates", subdomain_matching=True, static_url_path='/static')
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
     app.secret_key = os.getenv("SECRET_KEY")
@@ -29,8 +36,6 @@ def create_app():
     
     translations = load_translations()
     CORS(app)
-    db_type = os.getenv("DB_TYPE", "sqlite")
-    db_path = os.getenv("DB_PATH", "db.sqlite")
 
     init_engine(db_type, db_path)    
     from .utils.db import SessionLocal
@@ -58,6 +63,8 @@ def create_app():
             lang = "en"
 
         g.mode = os.getenv("MODE")
+        f_abs_path = os.path.abspath(__file__)
+        g.mainpath = "/".join(f_abs_path.split("/")[:-1])
         g.trans = translations[lang]
         g.alltrans = translations
         g.lang = lang

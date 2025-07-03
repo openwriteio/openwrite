@@ -1,3 +1,242 @@
 {% include 'header.html' %}
+<div><a href="/dashboard" class="action">Dashboard</a> > {{ blog.title }} - {{ g.trans['statistics'] }}</div>
 <h1 class="centered">{{ g.trans['statistics'] }}</h1>
+Post: 
+<select id="post" style="min-width: 14rem; min-height: 2rem; color: #fff; background: #211932;">
+{% for post in posts %}
+<option value="{{ post.id }}">{{ post.title }}</option>
+{% endfor %}
+</select>
+<div class="buttons-list" style="margin-bottom: 2rem">
+<a href="#" data-action="24" class="btn empty">1 day</a>
+<a href="#" data-action="168" class="btn empty">7 days</a>
+<a href="#" data-action="720" class="btn empty">30 days</a>
+<a href="#" data-action="2160" class="btn empty">90 days</a>
+</div>
+<h3>{{ g.trans['views'] }}</h3>
+<canvas id="stats" width="400" height="200"></canvas>
+<br>
+<h3>OS</h3>
+<canvas id="os" width="400" height="200"></canvas>
+<br>
+<h3>Browsers</h3>
+<canvas id="browsers" width="400" height="200"></canvas>
+<script>
+
+const ctx = document.getElementById("stats").getContext("2d");
+const os_ctx = document.getElementById("os").getContext("2d");
+const br_ctx = document.getElementById("browsers").getContext("2d");
+
+const chart = new Chart(ctx, {
+    type: 'line', 
+    data: {
+        labels: [],
+        datasets: [
+        {
+            label: '{{ g.trans['views'] }}',
+            data: [],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }
+        ]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+const os_chart = new Chart(os_ctx, {
+    type: 'bar', 
+    data: {
+        labels: [],
+        datasets: [
+        {
+            label: 'OS',
+            data: [],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.3)',
+              'rgba(255, 159, 64, 0.3)',
+              'rgba(255, 205, 86, 0.3)',
+              'rgba(75, 192, 192, 0.3)',
+              'rgba(54, 162, 235, 0.3)',
+              'rgba(153, 102, 255, 0.3)',
+              'rgba(201, 203, 207, 0.3)'
+            ],
+            borderColor: [
+              'rgb(255, 99, 132)',
+              'rgb(255, 159, 64)',
+              'rgb(255, 205, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(54, 162, 235)',
+              'rgb(153, 102, 255)',
+              'rgb(201, 203, 207)'
+            ],
+            borderWidth: 1
+        }
+        ]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+const br_chart = new Chart(br_ctx, {
+    type: 'bar', 
+    data: {
+        labels: [],
+        datasets: [
+        {
+            label: 'Browsers',
+            data: [],
+            backgroundColor: [
+              'rgba(54, 162, 235, 0.3)',
+              'rgba(153, 102, 255, 0.3)',
+              'rgba(201, 203, 207, 0.3)',
+              'rgba(255, 99, 132, 0.3)',
+              'rgba(255, 159, 64, 0.3)',
+              'rgba(255, 205, 86, 0.3)',
+              'rgba(75, 192, 192, 0.3)'
+            ],
+            borderColor: [
+              'rgb(54, 162, 235)',
+              'rgb(153, 102, 255)',
+              'rgb(201, 203, 207)',
+              'rgb(255, 99, 132)',
+              'rgb(255, 159, 64)',
+              'rgb(255, 205, 86)',
+              'rgb(75, 192, 192)'
+            ],
+            borderWidth: 1
+        }
+        ]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function update_chart(action, response) {
+    const views = response.views;
+    var elements = 0;
+    var interval = 0;
+    var format = {};
+    if(action == "24") {
+        elements = 24 * 60 / 20;
+        interval = 1000 * 60 * 20;
+        format = { hour: '2-digit', minute: '2-digit' };
+    } else if(action == "168") {
+        elements = 84; // 168 / 2
+        interval = 1000 * 60 * 120;
+        format = { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
+    } else if(action == "720") {
+        elements = 60; // every 12 hours
+        interval = 1000 * 60 * 60 * 12;
+        format = { day: '2-digit', month: '2-digit' };
+    } else if(action == "2160") {
+        elements = 90;
+        interval = 1000 * 60 * 60 * 24;
+        format = { day: '2-digit', month: '2-digit' };
+    }
+    views.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+    const cumulative = [];
+    let totalViews = response.start_from || 0;
+    let currentIndex = 0;
+    var labels = [];
+    const now = new Date();
+    for (let i = elements; i >= 0; i--) {
+        const bucketDate = new Date(now.getTime() - i * interval);
+        labels.push(bucketDate.toLocaleTimeString([], format));
+
+        while (currentIndex < views.length && new Date(views[currentIndex][0]) <= bucketDate) {
+            totalViews++;
+            currentIndex++;
+        }
+
+        cumulative.push(totalViews);
+    }
+
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = cumulative;
+    chart.update();
+}
+
+function update_os_chart(response) {
+    const views = response.views;
+    const oss = {};
+    const browsers = {};
+    views.forEach(v => {
+        oss[v[1]] = oss[v[1]] + 1 || 1;
+        browsers[v[2]] = browsers[v[2]] + 1 || 1;
+    });
+
+    os_chart.data.labels = Object.keys(oss);
+    os_chart.data.datasets[0].data = Object.values(oss);
+    br_chart.data.labels = Object.keys(browsers);
+    br_chart.data.datasets[0].data = Object.values(browsers);
+
+    os_chart.update();
+    br_chart.update();
+}
+
+document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('[data-action]').forEach(bt => {
+            bt.classList.remove("active");
+        });
+        this.classList.add("active");
+        var views = [];
+        var e = document.getElementById("post");
+        var post_id = e.options[e.selectedIndex].value;
+        const action = this.getAttribute('data-action');
+
+        fetch('/dashboard/get_stats/{{ blog.id }}/' + post_id + '/' + action, {
+            method: "GET"
+        }).then(response => {
+            if(response.ok) {
+                return response.json();
+            }
+        }).then(json => {
+            update_chart(action, json);
+            update_os_chart(json);
+        });
+    });
+});
+
+document.getElementById("post").addEventListener("change", function() {
+    var post_id = this.options[this.selectedIndex].value;
+    var action = 0;
+    document.querySelectorAll('[data-action]').forEach(btn => {
+        if(btn.classList.contains("active")) {
+            action = btn.getAttribute("data-action");
+        }
+    });
+    if(action != 0) {
+        fetch('/dashboard/get_stats/{{ blog.id }}/' + post_id + '/' + action, {
+            method: "GET"
+        }).then(response => {
+            if(response.ok) {
+                return response.json();
+            }
+        }).then(json => {
+            update_chart(action, json);
+            update_os_chart(json);
+        });
+    }
+});
+
+</script>
 {% include 'footer.html' %}

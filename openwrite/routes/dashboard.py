@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, redirect, request, g
+from flask import Blueprint, render_template, redirect, request, g, abort
 from openwrite.utils.models import Blog, Post, User, View
 from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity, is_html, get_themes
 import requests
 from sqlalchemy import desc
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -11,6 +11,7 @@ import json
 import bcrypt
 import markdown
 from bs4 import BeautifulSoup
+from user_agents import parse
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -67,7 +68,7 @@ def create_blog():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     ).decode()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
     try:
         new_blog = Blog(
             owner=g.user,
@@ -123,7 +124,7 @@ def edit_blog(name):
     if request.method == "GET":
         return render_template("edit.html", blog=blog, posts=posts, themes=themes)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
     blog.description_raw = request.form.get("description_raw")
     blog.description_html = sanitize_html(request.form.get("description_html"))
     if len(request.form.get("title")) > 30:
@@ -166,7 +167,7 @@ def new_post(name):
     if dupes > 0:
         link += f"-{dupes + 1}"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
     date = now
 
     post = Post(
@@ -266,7 +267,7 @@ def edit_post(blog, post):
         link += f"-{dupes + 1}"
 
     p.title = title
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
     p.content_raw = request.form.get("content_raw")
     p.content_html = sanitize_html(request.form.get("content"))
     p.author = request.form.get("author")
@@ -353,4 +354,41 @@ def migrate():
 
 @dashboard_bp.route("/dashboard/stats/<blog>")
 def stats(blog):
-    return render_template("stats.html")
+    if g.user is None:
+        return redirect("/login")
+
+    blog = g.db.query(Blog).filter_by(name=blog).first()
+    if blog.owner != g.user:
+        return redirect("/dashboard")
+
+    posts = g.db.query(Post).filter_by(blog=blog.id).all()
+
+    return render_template("stats.html", blog=blog, posts=posts)
+
+@dashboard_bp.route("/dashboard/get_stats/<blog>/<post>/<limit>")
+def get_stats(blog, post, limit):
+    if g.user is None:
+        abort(403)
+
+    b = g.db.query(Blog).filter_by(id=blog).first()
+    if g.user != b.owner:
+        abort(403)
+
+    if int(limit) not in (24, 168, 720, 2160):
+        abort(400)
+    time_threshold = datetime.now() - timedelta(hours=int(limit))
+    views_obj = {}
+    views_obj["views"] = []
+    start_from = g.db.query(View).filter(View.blog == blog, View.post == post, View.date < time_threshold).count()
+    views_obj["start_from"] = start_from
+    views = g.db.query(View).filter(View.blog == blog, View.post == post, View.date >= time_threshold).all()
+    for v in views:
+        os = "Unknown"
+        browser = "Unknown"
+        if v.agent not in (None, "null", "NULL"):
+            ua = parse(v.agent)
+            os = ua.os.family
+            browser = ua.browser.family
+        views_obj["views"].append([v.date, os, browser])
+
+    return views_obj

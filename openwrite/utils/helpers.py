@@ -2,7 +2,7 @@ import bleach
 import re
 import unicodedata
 import hashlib
-from flask import request
+from flask import request, g
 import os
 import secrets
 import json
@@ -210,6 +210,6 @@ def is_html(content):
     return bool(soup.find())
 
 def get_themes():
-    css_files = [f.replace(".css", "") for f in os.listdir("./openwrite/static/style/themes/") if f.endswith(".css")]
+    css_files = [f.replace(".css", "") for f in os.listdir(f"{g.mainpath}/static/style/themes/") if f.endswith(".css")]
 
     return css_files

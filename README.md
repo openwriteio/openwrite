@@ -1,7 +1,8 @@
 ![logo](https://github.com/user-attachments/assets/5a0dc36c-1b62-40ba-b740-fe3b941b67fa)
 openwrite is a minimalist blogging platform built for writing freely, hosting independently, and publishing without noise.
 
-![version](https://img.shields.io/badge/version-0.8.1-purple) 
+[![version](https://img.shields.io/badge/version-0.9.0-purple)](CHANGELOG.md)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 
 ---
 
@@ -25,19 +26,17 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Posts importing from xml/csv
 - Blog themes
 - Gemini protocol
-- Logging
+- Statistics per post
 
 ## In progress
 
 - Admin panel features
-- Statistics
 - Lemmy federation
 
 ## TODO
 
 - Drafts
 - More security tests, patching
-- Tests for building
 - Mail-to-post(?)
 
 ## Installation

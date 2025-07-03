@@ -64,9 +64,10 @@ def show_post(blog, post):
 
     ip = anonymize(get_ip())
     v = g.db.query(View).filter(View.blog == blog.id, View.post == one_post.id, View.hash == ip).count()
+    user_agent = request.headers.get('User-Agent')
     if v < 1:
         now = datetime.now(timezone.utc)
-        new_view = View(blog=blog.id, post=one_post.id, hash=ip, date=now)
+        new_view = View(blog=blog.id, post=one_post.id, hash=ip, date=now, agent=user_agent)
         g.db.add(new_view)
         g.db.commit()
     likes = g.db.query(Like).filter(Like.blog == blog.id, Like.post == one_post.id).count()
@@ -101,9 +102,10 @@ def show_subpost(blog, post):
 
     ip = anonymize(get_ip())
     v = g.db.query(View).filter(View.blog == blog.id, View.post == one_post.id, View.hash == ip).count()
+    user_agent = request.headers.get('User-Agent')
     if v < 1:
         now = datetime.now(timezone.utc)
-        new_view = View(blog=blog.id, post=one_post.id, hash=ip, date=now)
+        new_view = View(blog=blog.id, post=one_post.id, hash=ip, date=now, agent=user_agent)
         g.db.add(new_view)
         g.db.commit()
 
@@ -130,9 +132,10 @@ def single_showpost(post):
 
     ip = anonymize(get_ip())
     v = g.db.query(View).filter(View.blog == 1, View.post == one_post.id, View.hash == ip).count()
+    user_agent = request.headers.get('User-Agent')
     if v < 1:
         now = datetime.now(timezone.utc)
-        new_view = View(blog=1, post=one_post.id, hash=ip, date=now)
+        new_view = View(blog=1, post=one_post.id, hash=ip, date=now, agent=user_agent)
         g.db.add(new_view)
         g.db.commit()
 
@@ -143,6 +146,14 @@ def single_showpost(post):
 
     user = g.db.query(User).filter_by(id=g.user) if g.user else None
     return render_template("post.html", blog=blog, post=one_post, user=user, views=v)
+
+@blog_bp.route("/rss")
+def single_rss():
+    if g.mode == "multi":
+        return redirect("/")
+
+    blog = g.db.query(Blog).first()
+    return _generate_rss(blog)
 
 @blog_bp.route("/like", methods=["POST"])
 def like():

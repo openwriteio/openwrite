@@ -433,7 +433,7 @@ article.post-content p > img {
     min-width: 10px;
 }
 
-.small.btn.active {
+.small.btn.active, .btn.empty.active {
     border: 2px solid #D4C1FF;
     color: #D4C1FF;
 }

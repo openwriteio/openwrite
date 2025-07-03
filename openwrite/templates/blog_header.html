@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/hl.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <script src="{{ url_for('static', filename='highlight.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/highlight.min.js') }}"></script>
     <script nonce="{{ g.nonce }}">hljs.highlightAll();</script> 
-    <script src="{{ url_for('static', filename='openwrite.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/openwrite.js') }}"></script>
     {% if blog.theme != "default" %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style/themes/'+blog.theme) }}.css">
     {% endif %}

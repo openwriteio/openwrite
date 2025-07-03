@@ -22,7 +22,8 @@ dependencies = [
     "cryptography",
     "markdown",
     "md2gemini",
-    "jetforce"
+    "jetforce",
+    "user-agents"
 ]
 
 [project.scripts]

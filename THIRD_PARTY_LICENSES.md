@@ -21,6 +21,11 @@ License: MIT
 
 https://github.com/mholt/PapaParse
 
+### Chart.js
+License: MIT
+
+https://github.com/chartjs/Chart.js
+
 
 ---
 

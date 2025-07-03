@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Text, DateTime
+from sqlalchemy import Column, Integer, String, Date, Text, DateTime, Index
 from sqlalchemy.sql import func
 from openwrite.db.base import Base
 
@@ -70,6 +70,11 @@ class View(Base):
     blog = Column(Integer, nullable=False)
     post = Column(Integer, nullable=False)
     date = Column(DateTime)
+    agent = Column(String(300))
+
+    __table_args__ = (
+        Index("ix_views_blog_post", "blog", "post"),
+    )
 
 class Like(Base):
     __tablename__ = "likes"

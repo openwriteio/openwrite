@@ -53,9 +53,10 @@ def cli():
 
 
 @cli.command()
-def init():
-    if os.path.exists(".env"):
-        click.confirm(".env already exists. Overwrite?", abort=True)
+@click.option("-e", "--env", default="./.env", help=".env file path")
+def init(env):
+    if os.path.exists(env):
+        click.confirm(f"{env} already exists. Overwrite?", abort=True)
 
     mode = click.prompt("How are you willing to run openwrite?\n1. Multi-user\n2. Single user\n", type=int, default=1)
     domain = click.prompt("Choose a domain (ex. openwrite.io)")
@@ -98,7 +99,7 @@ def init():
         
     
 
-    with open(".env", "w") as f:
+    with open(env, "w") as f:
         f.write(f"IP={listen_ip}\n")
         f.write(f"PORT={listen_port}\n")
         f.write(f"BLOG_LIMIT={blog_limit}\n")
