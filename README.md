@@ -3,6 +3,7 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 
 [![version](https://img.shields.io/badge/version-0.9.0-purple)](CHANGELOG.md)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
+![pythonver](https://img.shields.io/badge/python%20version-3.11-blue)
 
 ---
 
