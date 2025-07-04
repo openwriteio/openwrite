@@ -27,7 +27,7 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Likes system
 - Posts importing from xml/csv
 - Blog themes
-- Gemini protocol
+- Gemini protocol -> temporarily disabled, see note below
 - Statistics per post
 
 ## In progress
@@ -42,7 +42,7 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 
 ## Installation
 
-For now, *openwrite* is in development phase. Make sure to understand that the project can have bugs security vulnerabilities at the moment. 
+For now, *openwrite* is in development phase. Make sure to understand that the project can have bugs and/or security vulnerabilities at the moment. 
 
 If you want to install the package now for testing or contributing:
 
@@ -52,3 +52,13 @@ If you want to install the package now for testing or contributing:
 4. `openwrite run` for foregound run, `openwrite run -d` for deamonized run
 5. `openwrite debugrun` for debug run(werkzeug)
 
+
+
+
+#### Gemini support note
+
+Gemini support (via JetForce) is currently **disabled** while I clarify licensing compatibility between FFSL and AGPL.
+I'm waiting for explicit permission from the author of JetForce to use it in an AGPL project (openwrite.io).
+Until then, Gemini won't be available to avoid license conflicts.
+
+See: https://github.com/floodgap/jetforce

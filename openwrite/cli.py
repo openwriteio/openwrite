@@ -203,6 +203,8 @@ def run(daemon):
     gemini_port = int(os.getenv("GEMINI_PORT", 1965))
     gemini_proxy = os.getenv("GEMINI_PROXY", "no").lower() == "yes"
 
+    gemini = False # due to licensing problems, waiting for author approval
+
     logs_enabled = os.getenv("LOGS", "no").lower() == "yes"
     logs_dir = os.getenv("LOGS_DIR", "./logs")
 
