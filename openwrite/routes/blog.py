@@ -66,7 +66,7 @@ def show_post(blog, post):
     v = g.db.query(View).filter(View.blog == blog.id, View.post == one_post.id, View.hash == ip).count()
     user_agent = request.headers.get('User-Agent')
     if v < 1:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
         new_view = View(blog=blog.id, post=one_post.id, hash=ip, date=now, agent=user_agent)
         g.db.add(new_view)
         g.db.commit()
@@ -104,7 +104,7 @@ def show_subpost(blog, post):
     v = g.db.query(View).filter(View.blog == blog.id, View.post == one_post.id, View.hash == ip).count()
     user_agent = request.headers.get('User-Agent')
     if v < 1:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
         new_view = View(blog=blog.id, post=one_post.id, hash=ip, date=now, agent=user_agent)
         g.db.add(new_view)
         g.db.commit()
@@ -134,7 +134,7 @@ def single_showpost(post):
     v = g.db.query(View).filter(View.blog == 1, View.post == one_post.id, View.hash == ip).count()
     user_agent = request.headers.get('User-Agent')
     if v < 1:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
         new_view = View(blog=1, post=one_post.id, hash=ip, date=now, agent=user_agent)
         g.db.add(new_view)
         g.db.commit()
@@ -176,7 +176,7 @@ def like():
         resp = {"status": "deleted"}
         status = 204
     else:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(microsecond=0)
         like = Like(blog=blog_id, post=post_id, hash=ip, date=now)
         g.db.add(like)
         g.db.commit()

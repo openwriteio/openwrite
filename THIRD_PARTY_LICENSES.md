@@ -4,6 +4,13 @@ This project uses the following third-party licenses and assets:
 
 ---
 
+## Python libraries
+
+### JetForce
+License: FFSL
+
+https://github.com/michael-lazar/jetforce/tree/master
+
 ## Javascript libraries:
 
 ### ShowdownJS

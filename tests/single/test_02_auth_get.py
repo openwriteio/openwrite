@@ -21,3 +21,8 @@ def test_get_flow(client):
     edit_post = client.get("/dashboard/edit/default/test")
     assert edit_post.status_code == 200
     assert b"Include author" in edit_post.data
+
+    stats = client.get("/dashboard/get_stats/1/1/24")
+    assert stats.status_code == 200
+    assert stats.content_type == "application/json"
+    assert b"start_from" in stats.data

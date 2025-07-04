@@ -1,6 +1,7 @@
 from flask import Flask, g
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.exceptions import HTTPException
 import os
 from .utils.helpers import generate_nonce, get_ip
 import time
@@ -116,14 +117,15 @@ def create_app(test_config=None):
         #    f"frame-ancestors 'none';"
         #    f"frame-src https://global.frcapi.com ;"
         #)
-        ip = get_ip()
-        app.logger.info("f{request.method} {request.path} from {ip} -> {response.status}")
         return response
 
     @app.errorhandler(Exception)
     def handle_exception(e):
+        if isinstance(e, HTTPException):
+            return e
+
         app.logger.exception(f"Unhandled exception! {e}")
-        return "Other error", 500
+        return "Internal Server Error", 500
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):

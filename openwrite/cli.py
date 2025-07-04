@@ -4,6 +4,7 @@ import os
 import shutil
 import requests
 import time
+import sys
 from multiprocessing import Process
 from dotenv import load_dotenv
 from .utils.create_db import init_db
@@ -16,18 +17,6 @@ import bcrypt
 
 load_dotenv()
 cwd = os.getcwd()
-
-class Tee:
-    def __init__(self, *streams):
-        self.streams = streams
-
-    def write(self, data):
-        for s in self.streams:
-            s.write(data)
-
-    def flush(self):
-        for s in self.streams:
-            s.flush()
 
 def print_banner():
     click.secho(r"""
@@ -92,10 +81,16 @@ def init(env):
         cert_path = click.prompt("Path to generate certificates for gemini", default=f"{cwd}/")
         click.echo("[+] Generating certificate for Gemini...\n\n")
         subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cert_path}/key.pem", "-out", f"{cert_path}/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
+        gemini_proxy = click.confirm("Use proxy procotol for gemini? (to get proper IP addresses)", default=False)
 
     logs_enabled = click.confirm("Enable logging?", default=True)
     if logs_enabled:
         logs_dir = click.prompt("Path to save logs", default=f"{cwd}/logs/")
+    captcha_enabled = click.confirm("Enable captcha (Friendly catpcha)?", default=False)
+    if captcha_enabled:
+        captcha_sitekey = click.prompt("Friendly captcha sitekey")
+        captcha_apikey = click.prompt("Friendly captcha API key")
+
         
     
 
@@ -128,17 +123,22 @@ def init(env):
         if gemini:
             f.write(f"GEMINI_PORT={gemini_port}\n")
             f.write(f"GEMINI_CERTS={cert_path}\n")
+            f.write(f"GEMINI_PROXY={'yes' if gemini else 'no'}\n")
 
         f.write(f"LOGS={'yes' if logs_enabled else 'no'}\n")
         if logs_enabled:
             f.write(f"LOGS_DIR={logs_dir}")
+        f.write(f"CAPTCHA_ENABLED={'yes' if captcha_enabled else 'no'}\n")
+        if captcha_enabled:
+            f.write(f"FRIENDLY_CAPTCHA_SITEKEY={captcha_sitekey}\n")
+            f.write(f"FRIENDLY_CAPTCHA_APIKEY={captcha_apikey}\n")
 
     click.echo("[+] .env file created")
     click.echo("[*] Initializing database..")
     init_db(dbtype, dbpath)
     click.echo("[+] Database initialized")
     click.echo("[*] Adding admin user...")
-    from .utils.models import User, Blog, Post
+    from .utils.models import User, Blog, Post, Settings
     from .utils.db import init_engine, SessionLocal
     init_engine(dbtype, dbpath)
     from .utils.db import SessionLocal
@@ -186,7 +186,10 @@ def init(env):
             created=now
         )
 
+        new_setting = Settings(name="logo", value="/static/logo.png")
+
         SessionLocal.add(new_blog)
+        SessionLocal.add(new_setting)
         SessionLocal.commit()
 
 @cli.command()
@@ -198,9 +201,15 @@ def run(daemon):
     port = int(os.getenv("PORT", 8080))
     gemini = os.getenv("GEMINI", "yes").lower() == "yes"
     gemini_port = int(os.getenv("GEMINI_PORT", 1965))
+    gemini_proxy = os.getenv("GEMINI_PROXY", "no").lower() == "yes"
 
-    logs_enabled = os.getenv("LOGS_ENABLED", "no").lower() == "yes"
+    logs_enabled = os.getenv("LOGS", "no").lower() == "yes"
     logs_dir = os.getenv("LOGS_DIR", "./logs")
+
+    os.makedirs(logs_dir, exist_ok=True)
+
+    gunicorn_access_log = os.path.join(logs_dir, "openwrite_access.log")
+    gunicorn_error_log = os.path.join(logs_dir, "openwrite_error.log")
 
     gunicorn_cmd = [
         "gunicorn",
@@ -209,16 +218,30 @@ def run(daemon):
         "--bind", f"{ip}:{port}"
     ]
 
+    gunicorn_logs = [
+        "--access-logfile", f"{gunicorn_access_log}",
+        "--error-logfile", f"{gunicorn_error_log}"
+    ]
+
+    gemini_cmd = [
+        "python3", "openwrite/launch_gemini.py"
+    ]
+
+    if gemini_proxy:
+        gemini_cmd = gemini_cmd + ["proxy"]
+
+    if logs_enabled:
+        gunicorn_cmd = gunicorn_cmd + gunicorn_logs
+
+
     if daemon:
         click.echo(f"[+] Openwrite listening on {ip}:{port}")
-
-        gunicorn_out = open(os.path.join(logs_dir, "openwrite.log"), "a") if logs_enabled else subprocess.DEVNULL
-        subprocess.Popen(gunicorn_cmd + ["--daemon"], stdout=gunicorn_out, stderr=subprocess.STDOUT)
+        subprocess.Popen(gunicorn_cmd + ["--daemon"])
 
         if gemini:
             click.echo(f"[+] Gemini listening on {ip}:{gemini_port}")
-            gemini_log = open(os.path.join(logs_dir, "gemini.log"), "a") if logs_enabled else subprocess.DEVNULL
-            subprocess.Popen(["python3", "openwrite/launch_gemini.py"], stdout=gemini_log, stderr=subprocess.STDOUT)
+
+            subprocess.Popen(gemini_cmd, stdout=gemini_log, stderr=subprocess.STDOUT)
 
     else:
         gunicorn_proc = subprocess.Popen(
@@ -228,39 +251,17 @@ def run(daemon):
             text=True
         )
 
-        gemini_proc = None
         if gemini:
             click.echo(f"[+] Gemini started on {ip}:{gemini_port}")
-
-            if logs_enabled:
-                def run_and_log():
-                    with open(os.path.join(logs_dir, "gemini.log"), "a") as f:
-                        tee = Tee(sys.stdout, f)
-                        with redirect_stdout(tee), redirect_stderr(tee):
-                            create_gemini()
-                gemini_proc = Process(target=run_and_log)
-            else:
-                gemini_proc = Process(target=create_gemini)
-
-            gemini_proc.start()
+            gemini_log = open(os.path.join(logs_dir, "gemini.log"), "a") if logs_enabled else subprocess.PIPE
+            gemini_proc = subprocess.Popen(gemini_cmd, stdout=gemini_log)
 
         try:
-            if logs_enabled:
-                with open(os.path.join(logs_dir, "openwrite.log"), "a") as logfile:
-                    for line in gunicorn_proc.stdout:
-                        print("[gunicorn]", line, end='')
-                        logfile.write(line)
-                        logfile.flush()
-            else:
-                for line in gunicorn_proc.stdout:
-                    print("[gunicorn]", line, end='')
-
             gunicorn_proc.wait()
+            gemini_proc.wait()
         except KeyboardInterrupt:
-            print("\n[!] Interrupted by user. Shutting down.")
             gunicorn_proc.terminate()
-            if gemini_proc:
-                gemini_proc.terminate()
+            gemini_proc.terminate()
 
 @cli.command()
 def debugrun():

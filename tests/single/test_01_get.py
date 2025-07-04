@@ -13,3 +13,4 @@ def test_rss(client):
     response = client.get("/rss")
     assert response.status_code == 200
     assert b"<channel>" in response.data
+

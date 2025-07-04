@@ -1,0 +1,27 @@
+body {
+    background: #11111a;
+}
+
+h1.blog-name {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+h1.blog-name a, article.blog-content h3, article.post-content a {
+    color: #e3bc5e;
+}
+
+div#menu a svg {
+    fill: #e3bc5e;
+}
+
+article.post-content {
+    color: #bbbaba;
+}
+
+h1.post-title {
+    color: #fff;
+}
+
+i.post-date {
+    color: #737373;
+}

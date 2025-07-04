@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2025-07-04
+### Added
+- New theme: obscura
+
+### Fixed
+- Gemini views now have proper address
+- Gemini supports proxy protocol
+- A bit wrong CSS in single-blog mode
+- Lack of logo in single-blog mode
+- Logging works properly now
+- Added ask for captcha in init
+
 ## [0.9.0] - 2025-07-03
 ### Added
 - Statistics page in dashboard: charts with views, browsers and OS

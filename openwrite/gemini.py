@@ -6,6 +6,7 @@ from jetforce import (
 )
 from openwrite.utils.db import init_engine, SessionLocal
 from openwrite.utils.models import Blog, Post, User, View
+from openwrite.utils.helpers import anonymize
 from md2gemini import md2gemini
 from datetime import datetime, timezone
 
@@ -52,6 +53,7 @@ class OpenwriteGemini(JetforceApplication):
     def post_view(self, request: Request, blogname: str, slug: str) -> Response:
         global session
         try:
+            print(request.environ)
             blog = session.query(Blog).filter_by(name=blogname).first()
             if not blog:
                 return Response(Status.NOT_FOUND, "Blog not found")
@@ -65,9 +67,12 @@ class OpenwriteGemini(JetforceApplication):
             user = session.query(User).filter_by(id=blog.owner).first()
 
             now = datetime.now(timezone.utc)
-            new_view = View(blog=blog.id, post=post.id, hash="127.0.0.1", date=now, agent="gemini")
-            session.add(new_view)
-            session.commit()
+            ip = anonymize(request.environ['REMOTE_ADDR'])
+            v = session.query(View).filter(View.blog==blog.id, View.post==post.id, View.hash==ip).count()
+            if v < 1:
+                new_view = View(blog=blog.id, post=post.id, hash=ip, date=now, agent="gemini")
+                session.add(new_view)
+                session.commit()
 
             post.authorname = user.username
             gemtext = f"=> /b/{blog.name} {blog.title}\n"
@@ -99,10 +104,11 @@ class OpenwriteGemini(JetforceApplication):
         finally:
             session.close()
 
-def create_gemini():
+def create_gemini(proxy = None):
     from jetforce.server import GeminiServer
     gemini_certs = os.getenv("GEMINI_CERTS")
     main_domain = os.getenv("DOMAIN")
+    proxy_setting = True if proxy == "proxy" else False
     GeminiServer(
         OpenwriteGemini(),
         host="0.0.0.0",
@@ -110,6 +116,7 @@ def create_gemini():
         
         certfile=f"{gemini_certs}/cert.pem", 
         keyfile=f"{gemini_certs}/key.pem",
-        hostname=main_domain
+        hostname=main_domain,
+        proxy_protocol=proxy_setting
     ).run()
 

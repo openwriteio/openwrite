@@ -17,10 +17,11 @@
 <span class="bloginfo">{{ g.trans['title'] }}: {{ blog.title }}</span>
 <span class="bloginfo">URL: 
 {% if g.mode == "multi" %}
-<a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a></span>
+<a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a>
 {% else %}
 <a style="text-decoration: none; color: #fff" href="http://{{ g.main_domain }}">{{ g.main_domain }}</a>
 {% endif %}
+</span>
 <div class="buttons-list">
 <a href="/dashboard/edit/{{ blog.name }}" class="btn empty">{{ g.trans['edit'] }}</a>
 <a href="/dashboard/post/{{ blog.name }}" class="btn purple">{{ g.trans['new_post'] }}</a>
