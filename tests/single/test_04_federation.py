@@ -16,4 +16,4 @@ def test_getinfo(client):
 def test_outbox(client):
     resp = client.get("/outbox/default?page=1")
     assert resp.status_code == 200
-    assert b"Create" in resp.data
+    assert b"this is a test" in resp.data

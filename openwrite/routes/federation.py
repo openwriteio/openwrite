@@ -43,10 +43,7 @@ def activity(blog):
     else:
         url = f"https://{g.main_domain}/b/{blog}"
 
-    if b.updated not in ("0000-00-00 00:00:00", "null", "NULL", None):
-        published = b.updated
-    else:
-        published = b.created
+    published = b.created
     dt = datetime.strptime(str(published), "%Y-%m-%d %H:%M:%S")
     dt = dt.replace(tzinfo=timezone.utc)
     iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")   
@@ -66,6 +63,8 @@ def activity(blog):
         "followers": f"https://{g.main_domain}/followers/{blog}",
         "published": iso,
         "manuallyApprovesFollowers": False,
+        "discoverable": True,
+        "indexable": True,
         "url": url,
         "publicKey": {
             "id": f"https://{g.main_domain}/activity/{blog}#main-key",
@@ -131,8 +130,6 @@ def inbox(blog):
 
         from_ = f"https://{g.main_domain}/activity/{blog}"
         send_activity(activity, b.priv_key, from_, f"{actor}/inbox")
-        print(f"sent to {actor}")
-
 
         return "", 202
 
@@ -205,7 +202,7 @@ def outbox(blog):
       "id": f"https://openwrite.io/outbox/{blog}",
       "type": "OrderedCollection",
       "totalItems": total,
-      "first": "https://openwrite.io/outbox/main?page=1"
+      "first": f"https://openwrite.io/outbox/{blog}?page=1"
     }
 
     if page not in ("true", "1"):

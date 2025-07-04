@@ -63,7 +63,7 @@ def app():
     )
     home_en = Home(language="en", name="hometext", type="text", content="quiet space for loud thoughts")
 
-    post = Post(blog=1, title="test!", link="test", date=now, content_raw="this is blog post", content_html="<p>this is blog post</p>", author="1", feed="1")
+    post = Post(blog=1, title="this is a test", link="test", date=now, content_raw="this is blog post", content_html="<p>this is blog post</p>", author="1", feed="1")
 
     SessionLocal.add(u1)
     SessionLocal.add(new_blog)

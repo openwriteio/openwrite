@@ -7,14 +7,24 @@
     <meta name="description" content="Minimalist, opensource blog. Write, freely.">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {% if 'dashboard/stats' in request.path %}
+    <script src="{{ url_for('static', filename='script/chart.js') }}"></script>
+    {% endif %}
+    {% if 'dashboard/edit' in request.path %}
     <script src="{{ url_for('static', filename='script/showdown.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='script/openwrite.js') }}"></script>
+    {% endif %}
+    {% if 'dashboard/post' in request.path %}
+    <script src="{{ url_for('static', filename='script/showdown.min.js') }}"></script>
+    {% endif %}
+    {% if 'dashboard/import' in request.path %}
     <script src="{{ url_for('static', filename='script/papaparse.min.js') }}"></script>
+    {% endif %}
+    <script src="{{ url_for('static', filename='script/openwrite.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
     {% if g.captcha %}
     <script type="module" src="{{ url_for('static', filename='script/site.min.js') }}" async defer></script>
     <script nomodule src="{{ url_for('static', filename='script/site.compat.min.js') }}" async defer></script>
     {% endif %}
-    <script src="{{ url_for('static', filename='script/chart.js') }}"></script>
 </head>
 <body>
     <div class="container">
