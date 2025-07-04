@@ -61,4 +61,4 @@ Gemini support (via JetForce) is currently **disabled** while I clarify licensin
 I'm waiting for explicit permission from the author of JetForce to use it in an AGPL project (openwrite.io).
 Until then, Gemini won't be available to avoid license conflicts.
 
-See: https://github.com/floodgap/jetforce
+See: [https://github.com/floodgap/jetforce](https://github.com/michael-lazar/jetforce)
