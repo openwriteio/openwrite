@@ -41,3 +41,4 @@ If you want to install the package now for testing or contributing:
 3. `openwrite init` for initialization of .env
 4. `openwrite run` for foregound run, `openwrite run -d` for deamonized run
 5. `openwrite debugrun` for debug run(werkzeug)
+
