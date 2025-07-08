@@ -239,6 +239,20 @@ def preview():
 
     return render_template("preview.html", data=data)
 
+@dashboard_bp.route("/dashboard/blog_preview", methods=['POST'])
+def blog_preview():
+    if g.user is None:
+        return redirect("/login")
+
+    u = g.db.query(User).filter_by(id=g.user).first()
+    data = {
+        'title': request.form.get('title'),
+        'content': sanitize_html(request.form.get('content')),
+        'theme': request.form.get('theme')
+    }
+
+    return render_template("blog_preview.html", data=data)
+
 @dashboard_bp.route("/dashboard/edit/<blog>/<post>", methods=['GET', 'POST'])
 def edit_post(blog, post):
     if g.user is None:

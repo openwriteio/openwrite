@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2025-07-08
+### Added
+- Gemini support for single & multi blog instances
+- Blog preview from dashboard
+
 ## [0.9.1] - 2025-07-04
 ### Added
 - New theme: obscura

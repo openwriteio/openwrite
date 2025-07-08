@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[preview] {{ data.title }}</title>
+    <meta name="description" content="Minimalist, opensource blog. Write, freely.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/hl.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script src="{{ url_for('static', filename='highlight.min.js') }}"></script>
+    <script nonce="{{ g.nonce }}">hljs.highlightAll();</script>
+    <script src="{{ url_for('static', filename='openwrite.js') }}"></script>
+     {% if data.theme != "default" %}
+      <link rel="stylesheet" href="{{ url_for('static', filename='style/themes/'+data.theme) }}.css">
+     {% endif %}
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="blog-name"><a href="#"><span>{{ data.title }}</span></a></h1>
+            <div id="menu">
+            </div>
+        </header>
+        <article class="blog-content">
+            <article class="post-content">
+                {{ data.content | safe }}
+            </article>
+            <hr>
+            <h3><b>{{ g.trans['posts'] }}</b></h3>
+            <article class="post-content">
+                <div class="postlist_item">
+                    <i class="datetime">01.01.1970, 00:01</i>
+                    -
+                    <a href="#">{{ g.trans['post'] }} 1</a>
+                </div>
+            </article>
+        </article>
+    </div>
+    <footer class="footer"> 
+        Written with ♡ on <a target="_blank" href="https://{{ g.main_domain }}/">{{ g.main_domain }}</a>
+    </footer>
+</body>
+</html>

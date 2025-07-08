@@ -9,14 +9,15 @@ from multiprocessing import Process
 from dotenv import load_dotenv
 from .utils.create_db import init_db
 from contextlib import redirect_stdout, redirect_stderr
-from .gemini import create_gemini
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timezone
 import bcrypt
 
 load_dotenv()
-cwd = os.getcwd()
+f_abs_path = os.path.abspath(__file__)
+cwd = "/".join(f_abs_path.split("/")[:-2])
+env = f"{cwd}/.env"
 
 def print_banner():
     click.secho(r"""
@@ -42,8 +43,7 @@ def cli():
 
 
 @cli.command()
-@click.option("-e", "--env", default="./.env", help=".env file path")
-def init(env):
+def init():
     if os.path.exists(env):
         click.confirm(f"{env} already exists. Overwrite?", abort=True)
 
@@ -77,11 +77,17 @@ def init(env):
         blog_limit = click.prompt("Limit blogs per user? Set to 0 for no limit", default="3")
     gemini = click.confirm("Run gemini service too?", default=True)
     if gemini:
+        gemini_host = click.prompt("What IP gemini should listen on?", default="0.0.0.0")
         gemini_port = click.prompt("What port gemini should listen on?", default="1965")
-        cert_path = click.prompt("Path to generate certificates for gemini", default=f"{cwd}/")
         click.echo("[+] Generating certificate for Gemini...\n\n")
-        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cert_path}/key.pem", "-out", f"{cert_path}/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
-        gemini_proxy = click.confirm("Use proxy procotol for gemini? (to get proper IP addresses)", default=False)
+        os.makedirs(f"{cwd}/gemini", exist_ok=True)
+        os.makedirs(f"{cwd}/gemini/mod", exist_ok=True)
+        os.makedirs(f"{cwd}/gemini/.certs", exist_ok=True)
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cwd}/gemini/.certs/key.pem", "-out", f"{cwd}/gemini/.certs/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
+        if mode == 1:
+            os.rename(f"{cwd}/gemini_multi.py", f"{cwd}/gemini/mod/10_openwrite.py")
+        elif mode == 2:
+            os.rename(f"{cwd}/gemini_single.py", f"{cwd}/gemini/mod/10_openwrite.py")
 
     logs_enabled = click.confirm("Enable logging?", default=True)
     if logs_enabled:
@@ -121,10 +127,13 @@ def init(env):
 
         f.write(f"GEMINI={'yes' if gemini else 'no'}\n")
         if gemini:
-            f.write(f"GEMINI_PORT={gemini_port}\n")
-            f.write(f"GEMINI_CERTS={cert_path}\n")
-            f.write(f"GEMINI_PROXY={'yes' if gemini else 'no'}\n")
-
+            with open(f"{cwd}/gemini.ini", "w") as gem:
+                gem.write("[server]\n")
+                gem.write(f"host = {domain}\n")
+                gem.write(f"address = {gemini_host}\n")
+                gem.write(f"port = {gemini_port}\n")
+                gem.write(f"certs = {cwd}/gemini/.certs\n")
+                gem.write(f"modules = {cwd}/gemini/mod\n")
         f.write(f"LOGS={'yes' if logs_enabled else 'no'}\n")
         if logs_enabled:
             f.write(f"LOGS_DIR={logs_dir}")
@@ -203,8 +212,6 @@ def run(daemon):
     gemini_port = int(os.getenv("GEMINI_PORT", 1965))
     gemini_proxy = os.getenv("GEMINI_PROXY", "no").lower() == "yes"
 
-    gemini = False # due to licensing problems, waiting for author approval
-
     logs_enabled = os.getenv("LOGS", "no").lower() == "yes"
     logs_dir = os.getenv("LOGS_DIR", "./logs")
 
@@ -226,9 +233,11 @@ def run(daemon):
     ]
 
     gemini_cmd = [
-        "python3", "openwrite/launch_gemini.py"
+        "gmcapsuled", "-c", f"{cwd}/gemini.ini"
     ]
 
+    gemini_log = open(os.path.join(logs_dir, "gemini.log"), "a") if logs_enabled else subprocess.PIPE
+    
     if gemini_proxy:
         gemini_cmd = gemini_cmd + ["proxy"]
 
@@ -247,15 +256,11 @@ def run(daemon):
 
     else:
         gunicorn_proc = subprocess.Popen(
-            gunicorn_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
+            gunicorn_cmd
         )
 
         if gemini:
             click.echo(f"[+] Gemini started on {ip}:{gemini_port}")
-            gemini_log = open(os.path.join(logs_dir, "gemini.log"), "a") if logs_enabled else subprocess.PIPE
             gemini_proc = subprocess.Popen(gemini_cmd, stdout=gemini_log)
 
         try:

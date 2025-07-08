@@ -1,7 +1,7 @@
 ![logo](https://github.com/user-attachments/assets/5a0dc36c-1b62-40ba-b740-fe3b941b67fa)
 openwrite is a minimalist blogging platform built for writing freely, hosting independently, and publishing without noise.
 
-[![version](https://img.shields.io/badge/version-0.9.1-purple)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.10.0-purple)](CHANGELOG.md)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 ![pythonver](https://img.shields.io/badge/python%20version-3.11-blue)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/openwriteio/openwrite/python-tests.yml)
@@ -27,18 +27,8 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Likes system
 - Posts importing from xml/csv
 - Blog themes
-- Gemini protocol -> temporarily disabled, see note below
+- Gemini protocol
 - Statistics per post
-
-## In progress
-
-- Admin panel features
-
-## TODO
-
-- Drafts
-- More security tests, patching
-- Mail-to-post(?)
 
 ## Installation
 
@@ -51,14 +41,3 @@ If you want to install the package now for testing or contributing:
 3. `openwrite init` for initialization of .env
 4. `openwrite run` for foregound run, `openwrite run -d` for deamonized run
 5. `openwrite debugrun` for debug run(werkzeug)
-
-
-
-
-#### Gemini support note
-
-Gemini support (via JetForce) is currently **disabled** while I clarify licensing compatibility between FFSL and AGPL.
-I'm waiting for explicit permission from the author of JetForce to use it in an AGPL project (openwrite.io).
-Until then, Gemini won't be available to avoid license conflicts.
-
-See: [https://github.com/michael-lazar/jetforce](https://github.com/michael-lazar/jetforce)

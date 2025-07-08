@@ -13,6 +13,8 @@ blog: {{ blog.name }}
 <div class="bloginfo">
 
 <form method="post" action="/dashboard/edit/{{ blog.name }}">
+<div class="container-row-fluid">
+<div style="display: flex; flex-direction: column">
 <span class="bloginfo">{{ g.trans['title'] }}: <input type="text" name="title" value="{{ blog.title }}"></span><br>
 <span class="bloginfo">URL: 
 {% if g.mode == "multi" %}
@@ -28,7 +30,10 @@ blog: {{ blog.name }}
         <option value="{{ t }}" {% if blog.theme == t %}selected{%endif %}>{{ t }}</option>
         {% endfor %}              
     </select>
-</span><a target="_blank" href="https://main.openwrite.io/available-themes" class="action">{{ g.trans['see_themes'] }}</a><br><br>
+</span><a target="_blank" href="https://main.openwrite.io/available-themes" class="action">{{ g.trans['see_themes'] }}</a>
+</div>
+<a target="_blank" href="/dashboard/blog_preview" class="btn purple" id="preview">{{ g.trans['preview'] }}</a>
+</div>
 <span class="bloginfo">{{ g.trans['description'] }} (markdown): </span>
 <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content" style="min-height: 200px; margin-bottom: 1rem; width: 100%">{{ blog.description_raw }}</textarea>
 <div style="display: flex; flex-direction: column; margin-bottom: 1rem">
@@ -145,6 +150,41 @@ blog: {{ blog.name }}
       } finally {
         fileInput.value = ""; 
       }
+    });
+
+    document.getElementById('preview').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const form = document.querySelector('form');
+        const title = form.querySelector('input[name="title"]').value;
+        const content_raw = form.querySelector('textarea[name="content"]').value;
+        const theme_sel = form.querySelector('select[name="theme"]');
+        var theme = theme_sel.options[theme_sel.selectedIndex].value;
+
+        const content = converter.makeHtml(content_raw);
+
+        const tempForm = document.createElement('form');
+        tempForm.method = 'POST';
+        tempForm.action = '/dashboard/blog_preview';
+        tempForm.target = '_blank';
+        const date = getUTCDate();
+        const inputs = {
+            title: title,
+            content: content,
+            theme: theme
+        };
+
+        for (let key in inputs) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = inputs[key];
+            tempForm.appendChild(input);
+        }
+
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
     });
 </script>
 {% include 'footer.html' %}

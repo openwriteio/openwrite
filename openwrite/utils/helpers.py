@@ -213,3 +213,4 @@ def get_themes():
     css_files = [f.replace(".css", "") for f in os.listdir(f"{g.mainpath}/static/style/themes/") if f.endswith(".css")]
 
     return css_files
+

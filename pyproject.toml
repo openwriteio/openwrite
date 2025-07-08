@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openwrite"
-version = "0.9.1"
+version = "0.10.1"
 license = { file = "LICENSE" }
 dependencies = [
     "flask",
@@ -22,7 +22,7 @@ dependencies = [
     "cryptography",
     "markdown",
     "md2gemini",
-    "jetforce",
+    "gmcapsule",
     "user-agents"
 ]
 
