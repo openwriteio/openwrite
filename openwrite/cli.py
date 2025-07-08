@@ -86,8 +86,10 @@ def init():
         subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cwd}/gemini/.certs/key.pem", "-out", f"{cwd}/gemini/.certs/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
         if mode == 1:
             os.rename(f"{cwd}/gemini_multi.py", f"{cwd}/gemini/mod/10_openwrite.py")
+            os.remove(f"{cwd}/gemini_single.py")
         elif mode == 2:
             os.rename(f"{cwd}/gemini_single.py", f"{cwd}/gemini/mod/10_openwrite.py")
+            os.remove(f"{cwd}/gemini_multi.py")
 
     logs_enabled = click.confirm("Enable logging?", default=True)
     if logs_enabled:

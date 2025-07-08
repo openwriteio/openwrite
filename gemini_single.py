@@ -27,6 +27,7 @@ def blog_index(req):
 
 def blog_post(req):
     global session
+    path = req.path
     if len(path.split("/")) == 3:
         
         slug = path.split("/")[2]
