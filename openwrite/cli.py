@@ -16,7 +16,8 @@ import bcrypt
 
 load_dotenv()
 f_abs_path = os.path.abspath(__file__)
-cwd = "/".join(f_abs_path.split("/")[:-2])
+lib_cwd = "/".join(f_abs_path.split("/")[:-1])
+cwd = os.getcwd()
 env = f"{cwd}/.env"
 
 def print_banner():
@@ -59,6 +60,7 @@ def init():
             bunny_storageurl = click.prompt("Bunny.net storage URL")
         else:
             upload_path = click.prompt("Path to save files?", default=f"{cwd}/uploads")
+            os.makedirs(upload_path, exist_ok=True)
     if mode == 1:
         register = click.prompt("Allow self-register?", default=True)
     dbtype = click.prompt("Choose database type: sqlite / mysql", default="sqlite")
@@ -85,11 +87,9 @@ def init():
         os.makedirs(f"{cwd}/gemini/.certs", exist_ok=True)
         subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cwd}/gemini/.certs/key.pem", "-out", f"{cwd}/gemini/.certs/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
         if mode == 1:
-            os.rename(f"{cwd}/gemini_multi.py", f"{cwd}/gemini/mod/10_openwrite.py")
-            os.remove(f"{cwd}/gemini_single.py")
+            os.rename(f"{lib_cwd}/gemini_multi.py", f"{cwd}/gemini/mod/10_openwrite.py")
         elif mode == 2:
-            os.rename(f"{cwd}/gemini_single.py", f"{cwd}/gemini/mod/10_openwrite.py")
-            os.remove(f"{cwd}/gemini_multi.py")
+            os.rename(f"{lib_cwd}/gemini_single.py", f"{cwd}/gemini/mod/10_openwrite.py")
 
     logs_enabled = click.confirm("Enable logging?", default=True)
     if logs_enabled:

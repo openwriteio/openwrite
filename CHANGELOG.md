@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.4] - 2025-07-08
+### Fixed
+- pyproject.toml for pypi
+
 ## [0.10.0] - 2025-07-08
 ### Added
 - Gemini support for single & multi blog instances

@@ -1,7 +1,7 @@
-![logo](https://github.com/user-attachments/assets/5a0dc36c-1b62-40ba-b740-fe3b941b67fa)
+![logo](https://openwrite.io/static/logo.png)
 openwrite is a minimalist blogging platform built for writing freely, hosting independently, and publishing without noise.
 
-[![version](https://img.shields.io/badge/version-0.10.0-purple)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.10.4-purple)](CHANGELOG.md)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 ![pythonver](https://img.shields.io/badge/python%20version-3.11-blue)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/openwriteio/openwrite/python-tests.yml)
@@ -30,15 +30,34 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Gemini protocol
 - Statistics per post
 
+
 ## Installation
 
-For now, *openwrite* is in development phase. Make sure to understand that the project can have bugs and/or security vulnerabilities at the moment. 
+1. To install openwrite, clone it with `pip`:
 
-If you want to install the package now for testing or contributing:
+```
+pip install openwrite
+```
 
-1. Clone this repository
-2. `pip install .` for installation 
-3. `openwrite init` for initialization of .env
-4. `openwrite run` for foregound run, `openwrite run -d` for deamonized run
-5. `openwrite debugrun` for debug run(werkzeug)
+2. Then run:
 
+```
+openwrite init
+```
+
+3. Answer few questions about your instance to generate .env, database and create all necessary directories.
+4. Run:
+
+```
+openwrite run
+```
+
+to run it in foreground or:
+
+```
+openwrite run -d
+```
+
+to run it in background.
+
+5. Enjoy!
