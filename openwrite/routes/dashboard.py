@@ -192,7 +192,7 @@ def new_post(name):
         url = f"https://openwrite.io/b/{blog.name}/{link}"
 
     followers = []
-    if blog.followers is not None:
+    if blog.followers not in (None, "null", "NULL"):
         followers = json.loads(blog.followers)
 
     for actor in followers:
