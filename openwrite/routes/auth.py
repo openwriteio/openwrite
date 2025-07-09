@@ -31,15 +31,16 @@ def register():
     if user:
         return render_template('register.html', error=g.trans["user_exists"])
     
-    if request.form.get("frc-captcha-response") is None or request.form.get("frc-captcha-response") == ".ACTIVATED":
-        return render_template('register.html', error=g.trans['invalid_captcha'])
+    if g.captcha:
+        if request.form.get("frc-captcha-response") is None or request.form.get("frc-captcha-response") == ".ACTIVATED":
+            return render_template('register.html', error=g.trans['invalid_captcha'])
 
-    captcha_data = {'response': request.form.get("frc-captcha-response"), 'sitekey': g.fcaptcha_sitekey}
+        captcha_data = {'response': request.form.get("frc-captcha-response"), 'sitekey': g.fcaptcha_sitekey}
 
-    resp = requests.post("https://global.frcapi.com/api/v2/captcha/siteverify", json=captcha_data, headers={"X-API-Key": g.fcaptcha_apikey})
+        resp = requests.post("https://global.frcapi.com/api/v2/captcha/siteverify", json=captcha_data, headers={"X-API-Key": g.fcaptcha_apikey})
 
-    if json.loads(resp.text)['success'] != True:
-        return render_template("register.html", error=resp.text)
+        if json.loads(resp.text)['success'] != True:
+            return render_template("register.html", error=resp.text)
     
     try: 
         hashed = bcrypt.hashpw(form_password.encode('utf-8'), bcrypt.gensalt())

@@ -1,7 +1,7 @@
 ![logo](https://openwrite.io/static/logo.png)
 openwrite is a minimalist blogging platform built for writing freely, hosting independently, and publishing without noise.
 
-[![version](https://img.shields.io/badge/version-0.10.4-purple)](CHANGELOG.md)
+![PyPI - Version](https://img.shields.io/pypi/v/openwrite)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 ![pythonver](https://img.shields.io/badge/python%20version-3.11-blue)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/openwriteio/openwrite/python-tests.yml)
@@ -61,3 +61,8 @@ openwrite run -d
 to run it in background.
 
 5. Enjoy!
+
+
+#### Docker
+
+Docker image is still being prepared. Stay tuned!

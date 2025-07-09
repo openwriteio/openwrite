@@ -1,7 +1,7 @@
 from io import BytesIO
 from PIL import Image
 
-def test_post_flow(client):
+def test_post_login(client):
     """
     Test login
     """
@@ -12,6 +12,7 @@ def test_post_flow(client):
 
     assert resp.status_code == 302
     
+def test_add_post(client):
     """
     Test add new post
     """
@@ -25,6 +26,7 @@ def test_post_flow(client):
 
     assert post.status_code == 302
     
+def test_get_post(client):
     """
     Test newly added post
     it should have url test-2 since test was already there
@@ -33,6 +35,7 @@ def test_post_flow(client):
     assert check_post.status_code == 200
     assert b"test2" in check_post.data
 
+def test_edit_blog(client):
     """
     Test edit blog
     """
@@ -46,6 +49,7 @@ def test_post_flow(client):
 
     assert blog.status_code == 200
     
+def test_get_blog(client):
     """
     Test edited blog
     """
@@ -56,6 +60,7 @@ def test_post_flow(client):
     assert b"deadbe" in check_blog.data
     assert b"warmnight" in check_blog.data
 
+def test_upload(client):
     """
     Test upload image
     """
@@ -73,7 +78,7 @@ def test_post_flow(client):
     assert upload.status_code == 200
     assert b"url" in upload.data
 
-
+def test_fake_upload(client):
     """
     Test non-image upload
     """

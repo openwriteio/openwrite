@@ -27,7 +27,7 @@ def app():
     hashed = bcrypt.hashpw("admin123".encode("utf-8"), bcrypt.gensalt())
     u1 = User(username="admin", email="", password_hash=hashed.decode("utf-8"), verified=1, admin=1)
 
-    domain = "singletest.open.write"
+    domain = "multitest.open.write"
 
     now = datetime.now(timezone.utc).replace(microsecond=0)
 
@@ -47,28 +47,10 @@ def app():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     ).decode()
    
-    new_blog = Blog(
-        owner=1,
-        name="default",
-        title=domain,
-        index="on",
-        access="domain",
-        description_raw=f"hello",
-        description_html=f"<p>hello</p>",
-        css="",
-        pub_key=public_pem,
-        priv_key=private_pem,
-        theme="default",
-        created=now
-    )
     home_en = Home(language="en", name="hometext", type="text", content="quiet space for loud thoughts")
 
-    post = Post(blog=1, title="this is a test", link="test", date=now, content_raw="this is blog post", content_html="<p>this is blog post</p>", author="1", feed="1")
-
     SessionLocal.add(u1)
-    SessionLocal.add(new_blog)
     SessionLocal.add(home_en)
-    SessionLocal.add(post)
     SessionLocal.commit()
 
     app = create_app(test_config)

@@ -32,9 +32,10 @@ def create_blog():
     if g.user is None:
         return redirect("/login")
 
-    count = g.db.query(Blog).filter_by(owner=g.user).count()
-    if count >= int(g.blog_limit):
-        return render_template("create.html", error="Blog limit reached!")
+    if int(g.blog_limit) > 0:
+        count = g.db.query(Blog).filter_by(owner=g.user).count()
+        if count >= int(g.blog_limit):
+            return render_template("create.html", error="Blog limit reached!")
 
     if request.method == "GET":
         return render_template("create.html")
@@ -51,6 +52,8 @@ def create_blog():
     
     form_index = request.form.get("index") or "off"
     form_access = request.form.get("access")
+    if form_access not in ("path", "domain"):
+        return render_template("create.html", error="Wrong access!")
     
     key = rsa.generate_private_key(
         public_exponent=65537,

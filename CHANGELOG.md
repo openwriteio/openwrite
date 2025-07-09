@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.5] - 2025-07-09
+### Added
+- Tests for multi instance
+
+### Fixed
+- Blog limit 0 = infinite didn't work
+- Register with captcha disabled didn't work
+
 ## [0.10.4] - 2025-07-08
 ### Fixed
 - pyproject.toml for pypi
