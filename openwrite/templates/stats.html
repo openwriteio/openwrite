@@ -1,6 +1,6 @@
 {% include 'header.html' %}
-<div><a href="/dashboard" class="action">Dashboard</a> > {{ blog.title }} - {{ g.trans['statistics'] }}</div>
-<h1 class="centered">{{ g.trans['statistics'] }}</h1>
+<div><a href="/dashboard" class="action">Dashboard</a> > {{ blog.title }} - {{ _('statistics') }}</div>
+<h1 class="centered">{{ _('statistics') }}</h1>
 Post: 
 <select id="post" style="min-width: 14rem; min-height: 2rem; color: #fff; background: #211932;">
 {% for post in posts %}
@@ -13,7 +13,7 @@ Post:
 <a href="#" data-action="720" class="btn empty">30 days</a>
 <a href="#" data-action="2160" class="btn empty">90 days</a>
 </div>
-<h3>{{ g.trans['views'] }}</h3>
+<h3>{{ _('views') }}</h3>
 <canvas id="stats" width="400" height="200"></canvas>
 <br>
 <h3>OS</h3>
@@ -33,7 +33,7 @@ const chart = new Chart(ctx, {
         labels: [],
         datasets: [
         {
-            label: '{{ g.trans['views'] }}',
+            label: '{{ _('views') }}',
             data: [],
             borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1

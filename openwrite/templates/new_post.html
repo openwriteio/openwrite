@@ -2,14 +2,14 @@
 {% if error %}
 <div class="error">{{ error }}</div>
 {% endif %}
-<div><a href="/dashboard" class="action">Dashboard</a> > <a href="/dashboard/edit/{{ blog.name }}" class="action">{{ blog.title }}</a> > {% if post %}{{ post.title }}{% else %}{{ g.trans['new_post'] }}{% endif %}</div>
+<div><a href="/dashboard" class="action">Dashboard</a> > <a href="/dashboard/edit/{{ blog.name }}" class="action">{{ blog.title }}</a> > {% if post %}{{ post.title }}{% else %}{{ _('new_post') }}{% endif %}</div>
 <div class="container-row-fluid">
-    <h3>{% if post %}{{ g.trans['editing_post'] }}: {{ post.title }}{% else %}{{ g.trans['new_post_on'] }}: {{ blog.name }}{% endif %}</h3>
-    <a target="_blank" href="/dashboard/preview" class="btn purple" id="preview">{{ g.trans['preview'] }}</a>
+    <h3>{% if post %}{{ _('editing_post') }}: {{ post.title }}{% else %}{{ _('new_post_on') }}: {{ blog.name }}{% endif %}</h3>
+    <a target="_blank" href="/dashboard/preview" class="btn purple" id="preview">{{ _('preview') }}</a>
 </div>
 <article class="main-content">
 <form method="post" action="{% if post %}/dashboard/edit/{{ blog.name }}/{{ post.link }}{% else %}/dashboard/post/{{ blog.name }}{% endif %}">
-    <input type="text" name="title" placeholder="{{ g.trans['title'] }}" style="max-width: 100%; height: 50px; font-size: 25px; margin-bottom: 1rem;" value="{% if post %}{{ post.title }}{% endif %}">
+    <input type="text" name="title" placeholder="{{ _('title') }}" style="max-width: 100%; height: 50px; font-size: 25px; margin-bottom: 1rem;" value="{% if post %}{{ post.title }}{% endif %}">
     <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
         <a href="#" class="small btn empty" data-action="h1">H1</a>
         <a href="#" class="small btn empty" data-action="h2">H2</a>
@@ -21,22 +21,22 @@
         <a href="#" class="small btn empty" data-action="quote">Q</a>
         <a href="https://main.openwrite.io/markdown-syntax" style="text-decoration: none; color: #eeeeee; margin-left: auto" target="_blank">Markdown syntax</a>
     </div>
-    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="{{ g.trans['content'] }}">{% if post %}{{ post.content_raw }}{% endif %}</textarea>
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="{{ _('content') }}">{% if post %}{{ post.content_raw }}{% endif %}</textarea>
     <div style="display: flex; justify-content: space-between">
         <div style="display: flex; gap: 0.5rem;">
            <input type="checkbox" id="author" {% if post %} {% if post.author == "1" %}checked="true"{% endif %} {% else %} checked="true" {% endif %}>
-           <label for="author" style="text-align: left">{{ g.trans['include_author'] }}?</label>
+           <label for="author" style="text-align: left">{{ _('include_author') }}?</label>
         </div>
         {% if g.upload_enabled %}
-        <a href="#" id="uploadLink" class="btn empty">📎 {{ g.trans['upload_image'] }}</a>
+        <a href="#" id="uploadLink" class="btn empty">📎 {{ _('upload_image') }}</a>
         <input type="file" id="fileInput" style="display: none;">
         {% endif %}
     </div>
 <div style="display: flex; gap: 0.5rem;">
     <input type="checkbox" id="feed" {% if post %} {% if post.feed == "1" %}checked="true"{% endif %} {% else %} checked="true" {% endif %}>
-<label for="feed" style="text-align: left">{{ g.trans['include_in_feed'] }}?</label>
+<label for="feed" style="text-align: left">{{ _('include_in_feed') }}?</label>
 </div>
-    <input type="submit" value="{% if post %}{{ g.trans['save'] }}{% else %}{{ g.trans['create'] }}{% endif %}" class="btn purple" id="submit">
+    <input type="submit" value="{% if post %}{{ _('save') }}{% else %}{{ _('create') }}{% endif %}" class="btn purple" id="submit">
 </form>
 </article>
 <script nonce="{{ g.nonce }}">

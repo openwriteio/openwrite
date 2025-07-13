@@ -14,8 +14,11 @@ main_bp = Blueprint("main", __name__)
 @main_bp.route("/")
 def index():
     if g.mode == "multi":
+        langs = []
         home = g.db.query(Home).filter_by(name="hometext").all()
-        return render_template('index.html', home=home)
+        for h in home:
+            langs.append(h.language)
+        return render_template('index.html', home=home, langs=langs)
 
     elif g.mode == "single":
         blog = g.db.query(Blog).filter_by(name="default").first()

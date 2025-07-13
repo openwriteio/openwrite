@@ -80,5 +80,3 @@ def init(capsule):
     capsule.add("/p/*",
         blog_post,
         protocol='gemini')
-
-

@@ -1,0 +1,87 @@
+{% include 'header.html' %}
+<h1 class="centered">Translations</h1>
+<form method="post" action="/admin/translations">
+<table class="table" style="width: 100%">
+    <thead><th>key</th>{% for l in langs %}<th>{{ l }}</th>{% endfor %}<th><button style="min-width: 20px; height: 20px" id="add_lang" class="btn purple">+</button></thead>
+    <tbody>
+    {% for key, langs_dict in trans.items() %}
+    <tr>
+        <td><input type="text" name="key___{{ loop.index }}" value="{{ key }}"></td>
+        {% for l in langs %}
+        <td>
+            <input spellcheck="false" autocorrect="off" type="text" name="val___{{ key }}___{{ l }}" value="{{ langs_dict.get(l, '') }}">
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}   
+</table>
+<button class="btn purple" id="add_key" style="min-width:20px; height: 20px">+</button>
+<input class="btn purple" type="submit" value="{{ _('send') }}">
+</form>
+<script>
+
+document.getElementById("add_key").addEventListener("click", function(e) {
+    e.preventDefault();
+    var tbody = document.querySelector("tbody");
+    var lang_num = tbody.children[0].children.length;
+    var keys_num = tbody.children.length;
+    var next_key = keys_num + 1;
+    var langs = [];
+
+    for (var i = 1; i < lang_num; i++) {
+        var val = tbody.children[0].children[i].children[0].name.split("___")[2];
+        langs.push(val);
+    }
+
+    var newkey = '<tr><td><input type="text" name="key___' + next_key + '" class="key_input"></td>';
+    for (var i = 0; i < langs.length; i++) {
+        newkey += '<td><input spellcheck="false" autocorrect="off" type="text" name="val___KEY___' + langs[i] + '"></td>';
+    }
+    newkey += '</tr>';
+
+    tbody.insertAdjacentHTML('beforeend', newkey); 
+});
+
+document.querySelector("tbody").addEventListener("input", function(e) {
+    if (e.target.matches(".key_input")) {
+        var input = e.target;
+        var val = input.value;
+        var row = input.closest("tr");
+        var inputs = row.querySelectorAll("td input");
+
+        for (var i = 1; i < inputs.length; i++) {
+            var parts = inputs[i].name.split("___");
+            inputs[i].name = parts[0] + "___" + val + "___" + parts[2];
+        }
+    }
+});
+
+
+document.getElementById("add_lang").addEventListener("click", function(e) {
+    e.preventDefault();
+    this.parentElement.innerHTML = '<input id="new_lang" name="new_lang" type="text">';
+
+    var trs = document.querySelectorAll("tr");
+    for (var i = 1; i < trs.length; i++) {
+        var key = trs[i].children[0].children[0].value;
+        trs[i].innerHTML += '<td><input spellcheck="false" type="text" name="val___' + key + '___LANG"></td>';
+    }
+
+    document.getElementById("new_lang").addEventListener("input", function () {
+        new_lang(this);
+    });
+});
+
+function new_lang(x) {
+    var lang = x.value;
+
+    var trs = document.querySelectorAll("tr");
+    for (var i = 1; i < trs.length; i++) {
+        var current_name = trs[i].children[trs[i].children.length - 1].children[0].name;
+        var name_parts = current_name.split("___");
+        trs[i].children[trs[i].children.length - 1].children[0].name = name_parts[0] + "___" + name_parts[1] + "___" + lang;
+    }
+}
+
+</script>
+{% include 'footer.html' %}

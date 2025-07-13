@@ -113,5 +113,3 @@ def init(capsule):
     capsule.add("/b/*",
         blog_index,
         protocol='gemini')
-
-

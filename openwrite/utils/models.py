@@ -18,6 +18,9 @@ class Home(Base):
     type = Column(String(30), nullable=False)
     url = Column(String(200))
     content = Column(Text)
+    __table_args__ = (
+        Index("ix_home_lang", "language"),
+    )
 
 class User(Base):
     __tablename__ = "users"
@@ -61,6 +64,10 @@ class Post(Base):
     author = Column(String(10), nullable=False)
     feed = Column(String(10), nullable=False)
     updated = Column(DateTime)
+
+    __table_args__ = (
+        Index("ix_posts_blog", "blog"),
+    )
 
 class View(Base):
     __tablename__ = "views"

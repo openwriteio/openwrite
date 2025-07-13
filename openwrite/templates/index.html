@@ -1,9 +1,17 @@
 {% include 'header.html' %}
 
+                {% if g.lang in langs %}
                     {% for h in home %}
                     {% if h.language == g.lang %}
                     {{ h.content | safe }}
                     {% endif %}
                     {% endfor %}
+                {% else %}
+                    {% for h in home %}
+                    {% if h.language == "en" %}
+                    {{ h.content | safe }}
+                    {% endif %}
+                    {% endfor %}
+                {% endif %}
 
 {% include 'footer.html' %}

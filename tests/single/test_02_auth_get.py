@@ -1,7 +1,7 @@
 def test_login(client):
     resp = client.post("/login", data={
         "username": "admin",
-        "password": "admin123"
+        "password": "openwrite"
     })
 
     assert resp.status_code == 302

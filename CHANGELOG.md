@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2025-07-13
+### Added
+- Moved translations to database
+- Translation now done using _ function in templates
+- Initialize database on first run instead of init command
+- Edit/add languages and keys from admin panel
+
+### Fixed
+- Removed username from uploaded file(privacy)
+- Default appeared in theme list twice
+- Openwrite stop command gemini fix
+
 ## [0.10.5] - 2025-07-09
 ### Added
 - Tests for multi instance

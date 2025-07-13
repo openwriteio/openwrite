@@ -1,7 +1,7 @@
 def test_homepage(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert b"quiet space" in response.data
+    assert b"quiet" in response.data
 
 def test_register(client):
     response = client.get("/register")

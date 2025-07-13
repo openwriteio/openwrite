@@ -29,6 +29,7 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Blog themes
 - Gemini protocol
 - Statistics per post
+- Multilanguage (currently English and Polish)
 
 
 ## Installation
@@ -45,7 +46,7 @@ pip install openwrite
 openwrite init
 ```
 
-3. Answer few questions about your instance to generate .env, database and create all necessary directories.
+3. Answer few questions about your instance to generate .env and create all necessary directories.
 4. Run:
 
 ```
@@ -60,7 +61,7 @@ openwrite run -d
 
 to run it in background.
 
-5. Enjoy!
+5. Default user is `admin` with password `openwrite`. You can (and should!) change it in your dashboard. Enjoy!
 
 
 #### Docker

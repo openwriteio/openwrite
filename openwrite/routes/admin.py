@@ -5,6 +5,7 @@ import bcrypt
 from werkzeug.utils import secure_filename
 from PIL import Image
 import os
+from collections import defaultdict
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -164,7 +165,36 @@ def admin_settings():
         logo_q.value = f"{g.staticurl}/{filename}"
         g.db.commit()
         settings_dict['logo'] = f"{g.staticurl}/{filename}"
-    for h in hometext:
-        h.content = hometexts[h.language]
+    g.db.query(Home).filter_by(name="hometext").delete()
+    for h in hometexts.keys():
+        g.db.add(Home(name="hometext", language=h, type="text", content=hometexts[h]))
     g.db.commit()
-    return render_template("settings.html", settings=settings_dict, hometext=hometext)
+    new_hometexts = g.db.query(Home).filter_by(name="hometext").all()
+    return render_template("settings.html", settings=settings_dict, hometext=new_hometexts)
+
+@admin_bp.route("/admin/translations", methods=['GET', 'POST'])
+def translations():
+    if request.method == "GET":
+        trans = g.db.query(Home).filter_by(type="translation").all()
+        grouped = defaultdict(dict)
+        for t in trans:
+            grouped[t.name][t.language] = t.content
+        return render_template("translations.html", trans=grouped, langs=g.alltrans)
+
+    trans_array = []
+    for key, val in request.form.items():
+        if key.startswith("val_"):
+            _, name, lang = key.split("___", 2)
+            trans_array.append({
+                "name": name,
+                "language": lang,
+                "content": val
+            })
+
+    g.db.query(Home).filter(Home.type == "translation").delete()
+
+    for tr in trans_array:
+        g.db.add(Home(name=tr['name'], language=tr['language'], content=tr['content'], type="translation"))
+
+    g.db.commit()
+    return redirect("/admin/translations")

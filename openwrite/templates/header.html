@@ -39,16 +39,16 @@
                 {% if g.user %}
                 <a href="/dashboard">Dashboard</a>
                 {% endif %}
-                <a href="/discover">{{ g.trans['discover'] }}</a>
-                <a href="/instances">{{ g.trans["instances"] }}</a>
-                <a href="https://main.openwrite.io/hosting">{{ g.trans["hosting"] }}</a>
+                <a href="/discover">{{ _('discover') }}</a>
+                <a href="/instances">{{ _('instances') }}</a>
+                <a href="https://main.openwrite.io/hosting">{{ _('hosting') }}</a>
                 {% if g.user %}
-                <a href="/logout">{{ g.trans["logout"] }}</a>
+                <a href="/logout">{{ _('logout') }}</a>
                 {% else %}
                 {% if g.register_enabled %}
-                <a href="/register">{{ g.trans["register"] }}</a>
+                <a href="/register">{{ _('register') }}</a>
                 {% endif %}
-                <a href="/login">{{ g.trans["login"] }}</a>
+                <a href="/login">{{ _('login') }}</a>
                 {% endif %}
                 {% if g.isadmin == 1 %}
                 <a href="/admin">Admin</a>

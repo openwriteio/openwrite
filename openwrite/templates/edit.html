@@ -7,7 +7,7 @@
 {% if g.mode == "multi" %}
 blog: {{ blog.name }}
 {% else %}
-{{ g.trans['edit'] }} blog
+{{ _('edit') }} blog
 {% endif %}
 </h1>
 <div class="bloginfo">
@@ -15,7 +15,7 @@ blog: {{ blog.name }}
 <form method="post" action="/dashboard/edit/{{ blog.name }}">
 <div class="container-row-fluid">
 <div style="display: flex; flex-direction: column">
-<span class="bloginfo">{{ g.trans['title'] }}: <input type="text" name="title" value="{{ blog.title }}"></span><br>
+<span class="bloginfo">{{ _('title') }}: <input type="text" name="title" value="{{ blog.title }}"></span><br>
 <span class="bloginfo">URL: 
 {% if g.mode == "multi" %}
 <a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}" target="_blank" style="text-decoration: none; color: #fff;">{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }} {% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}</a>
@@ -23,47 +23,46 @@ blog: {{ blog.name }}
 <a href="http://{{ g.main_domain }}" target="_blank" style="text-decoration: none; color: #fff">{{ g.main_domain }}</a><br>
 {% endif %}
 </span><br>
-<span class="bloginfo">{{ g.trans['select_theme'] }}: 
+<span class="bloginfo">{{ _('select_theme') }}: 
     <select name="theme" style="min-width: 14rem; min-height: 2rem; color: #fff; background: #211932;">
-        <option value="default" {% if blog.theme == "default" %}selected{% endif %}>{{ g.trans['default'] }}</option>
         {% for t in themes %}
         <option value="{{ t }}" {% if blog.theme == t %}selected{%endif %}>{{ t }}</option>
         {% endfor %}              
     </select>
-</span><a target="_blank" href="https://main.openwrite.io/available-themes" class="action">{{ g.trans['see_themes'] }}</a>
+</span><a target="_blank" href="https://main.openwrite.io/available-themes" class="action">{{ _('see_themes') }}</a>
 </div>
-<a target="_blank" href="/dashboard/blog_preview" class="btn purple" id="preview">{{ g.trans['preview'] }}</a>
+<a target="_blank" href="/dashboard/blog_preview" class="btn purple" id="preview">{{ _('preview') }}</a>
 </div>
-<span class="bloginfo">{{ g.trans['description'] }} (markdown): </span>
+<span class="bloginfo">{{ _('description') }} (markdown): </span>
 <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content" style="min-height: 200px; margin-bottom: 1rem; width: 100%">{{ blog.description_raw }}</textarea>
 <div style="display: flex; flex-direction: column; margin-bottom: 1rem">
-<span class="bloginfo">{{ g.trans['custom_css'] }}:</span>
-<i style="margin-bottom: 1rem;">{{ g.trans['css_unsafe_info'] }}</i>
+<span class="bloginfo">{{ _('custom_css') }}:</span>
+<i style="margin-bottom: 1rem;">{{ _('css_unsafe_info') }}</i>
 <textarea name="css" style="min-height: 100px;" class="post_content">{{ blog.css }}</textarea>
 </div>
 <div style="display: flex; justify-content: space-between">
-    <input type="submit" id="submit" value="{{ g.trans['save'] }}" class="btn purple">
+    <input type="submit" id="submit" value="{{ _('save') }}" class="btn purple">
     {% if g.upload_enabled %}
-    <a href="#" id="uploadLink" class="btn empty">📎 {{ g.trans['upload_image'] }}</a>
+    <a href="#" id="uploadLink" class="btn empty">📎 {{ _('upload_image') }}</a>
     <input type="file" id="fileInput" style="display: none;">
     {% endif %}
 </div>
 </form>
 
-<span class="bloginfo">{{ g.trans['posts'] }}:</span>
+<span class="bloginfo">{{ _('posts') }}:</span>
 <table class="posts" border="1">
 <thead>
-    <th width="20%">{{ g.trans['date'] }}</th><th>{{ g.trans['title'] }}</th><th width="5%">{{ g.trans['views'] }}<th width="15%">{{ g.trans['actions'] }}</th>
+    <th width="20%">{{ _('date') }}</th><th>{{ _('title') }}</th><th width="5%">{{ _('views') }}<th width="15%">{{ _('actions') }}</th>
 </thead>
 <tbody>
 {% for post in posts %}
-    <tr><td style="text-align: center" class="datetime">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ g.trans['edit'] }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ g.trans['are_you_sure_post'] }} {{ post.title }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete'] }}</a></td></tr>
+    <tr><td style="text-align: center" class="datetime">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ _('edit') }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ _('are_you_sure_post') }} {{ post.title }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete') }}</a></td></tr>
 {% endfor %}
 </tbody>
 </table>
 <div class="buttons-list">
-<a href="/dashboard/post/{{ blog.name }}" class="btn purple">{{ g.trans['new_post'] }}</a>
-<a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ g.trans['are_you_sure_blog'] }} {{ blog.name }}?\n{{ g.trans['this_action_cannot_be_reverted'] }}.')">{{ g.trans['delete_blog'] }}</a>
+<a href="/dashboard/post/{{ blog.name }}" class="btn purple">{{ _('new_post') }}</a>
+<a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ _('are_you_sure_blog') }} {{ blog.name }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete_blog') }}</a>
 </div>
 </div>
 <script nonce="{{ g.nonce }}">

@@ -13,6 +13,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timezone
 import bcrypt
+import json
+import shutil
 
 load_dotenv()
 f_abs_path = os.path.abspath(__file__)
@@ -87,9 +89,9 @@ def init():
         os.makedirs(f"{cwd}/gemini/.certs", exist_ok=True)
         subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:4096", "-keyout", f"{cwd}/gemini/.certs/key.pem", "-out", f"{cwd}/gemini/.certs/cert.pem", "-days", "365", "-nodes", "-subj", f"/CN={domain}"], check=True)
         if mode == 1:
-            os.rename(f"{lib_cwd}/gemini_multi.py", f"{cwd}/gemini/mod/10_openwrite.py")
+            shutil.copyfile(f"{lib_cwd}/gemini_multi.py", f"{cwd}/gemini/mod/10_openwrite.py")
         elif mode == 2:
-            os.rename(f"{lib_cwd}/gemini_single.py", f"{cwd}/gemini/mod/10_openwrite.py")
+            shutil.copyfile(f"{lib_cwd}/gemini_single.py", f"{cwd}/gemini/mod/10_openwrite.py")
 
     logs_enabled = click.confirm("Enable logging?", default=True)
     if logs_enabled:
@@ -138,70 +140,15 @@ def init():
                 gem.write(f"modules = {cwd}/gemini/mod\n")
         f.write(f"LOGS={'yes' if logs_enabled else 'no'}\n")
         if logs_enabled:
-            f.write(f"LOGS_DIR={logs_dir}")
+            f.write(f"LOGS_DIR={logs_dir}\n")
         f.write(f"CAPTCHA_ENABLED={'yes' if captcha_enabled else 'no'}\n")
         if captcha_enabled:
             f.write(f"FRIENDLY_CAPTCHA_SITEKEY={captcha_sitekey}\n")
             f.write(f"FRIENDLY_CAPTCHA_APIKEY={captcha_apikey}\n")
 
     click.echo("[+] .env file created")
-    click.echo("[*] Initializing database..")
-    init_db(dbtype, dbpath)
-    click.echo("[+] Database initialized")
-    click.echo("[*] Adding admin user...")
-    from .utils.models import User, Blog, Post, Settings
-    from .utils.db import init_engine, SessionLocal
-    init_engine(dbtype, dbpath)
-    from .utils.db import SessionLocal
-    admin_password = os.urandom(16).hex()
-    hashed = bcrypt.hashpw(admin_password.encode("utf-8"), bcrypt.gensalt())
-    admin_user = User(username="admin", email="", password_hash=hashed.decode("utf-8"), verified=1, admin=1)
-    SessionLocal.add(admin_user)
-    SessionLocal.commit()
-    SessionLocal.close()
-    click.echo(f"[+] Admin user added! Your credentials:\n\nLogin: admin\nPassword: {admin_password}")
     if logs_enabled and not os.path.exists(logs_dir):
         os.makedirs(logs_dir, exist_ok=True)
-    
-    if mode == 2:
-        key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048
-        )
-
-        private_pem = key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        ).decode()
-
-        public_pem = key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ).decode()
-
-        now = datetime.now(timezone.utc)
-
-        new_blog = Blog(
-            owner=1, 
-            name="default", 
-            title=domain, 
-            index="on", 
-            access="domain",
-            description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](http://{domain}/dashboard/edit/default)",
-            description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"http://{domain}/dashboard/edit/default\">dashboard</a></p>",
-            css="",
-            pub_key=public_pem,
-            priv_key=private_pem,
-            theme="default",
-            created=now
-        )
-
-        new_setting = Settings(name="logo", value="/static/logo.png")
-
-        SessionLocal.add(new_blog)
-        SessionLocal.add(new_setting)
-        SessionLocal.commit()
 
 @cli.command()
 @click.option("-d", "--daemon", is_flag=True, help="Run in background (daemon)")
@@ -267,10 +214,12 @@ def run(daemon):
 
         try:
             gunicorn_proc.wait()
-            gemini_proc.wait()
+            if gemini:
+                gemini_proc.wait()
         except KeyboardInterrupt:
             gunicorn_proc.terminate()
-            gemini_proc.terminate()
+            if gemini:
+                gemini_proc.terminate()
 
 @cli.command()
 def debugrun():
@@ -320,7 +269,7 @@ def stop(service):
         click.echo("[*] Searching Gunicorn processes")
         try:
             out = subprocess.check_output(["pgrep", "-f", "gunicorn.*openwrite:create_app"], text=True)
-            out_gemini = subprocess.check_output(["pgrep", "-f", "gemini\.py"], text=True)
+            out_gemini = subprocess.check_output(["pgrep", "-f", "gmcapsuled"], text=True)
             pids = out.strip().splitlines()
             pids_gemini = out_gemini.strip().splitlines()
             for pid in pids:

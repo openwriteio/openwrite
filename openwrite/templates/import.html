@@ -1,24 +1,24 @@
 {% include 'header.html' %}
 <article class="main-content">
-    <h1 class="centered">{{ g.trans['migrate_posts'] }}</h1>
+    <h1 class="centered">{{ _('migrate_posts') }}</h1>
     <div class="message" style="display: none"></div>
     <div class="error" style="display: none"></div>
     <div style="display: flex; flex-direction: column; gap: 1rem">
-        <span class="form-field" style="margin-top: 2rem;">{{ g.trans['import_info'] | safe }}</span>
+        <span class="form-field" style="margin-top: 2rem;">{{ _('import_info') | safe }}</span>
         <input class="file_upload" type="file" name="posts_file">
         <form method="post" action="/dashboard/import" style="display:none">
-            <h2 class="form-field" style="padding: 1rem;">{{ g.trans['select_posts'] }}</h2>
+            <h2 class="form-field" style="padding: 1rem;">{{ _('select_posts') }}</h2>
             <span class="form-field" id="posts">
             </span>
             <div class="horizontal-fields" style="display: flex; gap: 1.5rem;">
-            <p style="line-height: 3rem;">{{ g.trans['select_blog_to_import'] }}</p>
+            <p style="line-height: 3rem;">{{ _('select_blog_to_import') }}</p>
                 <select id="blogs" style="min-width: 14rem; min-height: 3rem; color: #fff; background: #211932;">
                     {% for blog in blogs %}
                     <option value="{{ blog.name }}">{{ blog.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <input type="submit" name="import" value="{{ g.trans['send'] }}" class="btn purple" style="margin-top: 2rem">
+            <input type="submit" name="import" value="{{ _('send') }}" class="btn purple" style="margin-top: 2rem">
         </form>   
     </div>
 </article>
@@ -56,11 +56,11 @@ form_input.addEventListener("click", function(e) {
         if (response.ok) {
             const div_msg = document.getElementsByClassName("message")[0];
             div_msg.style.display = "block";
-            div_msg.innerHTML = '{{ g.trans['import_success1'] }} <a class="link" style="color: #dd98ff" href="/dashboard/edit/'+ blog_name +'">{{ g.trans['import_success2'] }}</a> {{ g.trans['import_success3'] }}';
+            div_msg.innerHTML = '{{ _('import_success1') }} <a class="link" style="color: #dd98ff" href="/dashboard/edit/'+ blog_name +'">{{ _('import_success2') }}</a> {{ _('import_success3') }}';
         } else {
             const div_err = document.getElementsByClassName("error")[0];
             div_err.style.display = "block";
-            div_err.innerHTML = '{{ g.trans['import_failed'] }}';
+            div_err.innerHTML = '{{ _('import_failed') }}';
         }
     });
 });

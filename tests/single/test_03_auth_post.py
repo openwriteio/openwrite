@@ -7,7 +7,7 @@ def test_post_login(client):
     """
     resp = client.post("/login", data={
         "username":"admin",
-        "password":"admin123"
+        "password":"openwrite"
     })
 
     assert resp.status_code == 302
@@ -18,15 +18,35 @@ def test_add_post(client):
     """
     post = client.post("/dashboard/post/default", data={
         "title": "test",
-        "content_raw": "test2",
-        "content": "<p>test2</p>",
+        "content_raw": "test",
+        "content": "<p>test</p>",
         "author":"1",
         "feed": "0"
     })
 
     assert post.status_code == 302
+
+    post2 = client.post("/dashboard/post/default", data={   
+        "title": "test",
+        "content_raw": "test2",
+        "content": "<p>test2</p>",
+        "author": "1",
+        "feed": "0"
+    })
+
+    assert post2.status_code == 302
+
+    post3 = client.post("/dashboard/post/default", data={
+        "title": "this is a test",
+        "content_raw": "test",
+        "content": "<p>test</p>",
+        "author": "1",
+        "feed": "0"
+    })
+
+    assert post3.status_code == 302
     
-def test_get_post(client):
+def test_get_post2(client):
     """
     Test newly added post
     it should have url test-2 since test was already there

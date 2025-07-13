@@ -2,12 +2,12 @@
         <footer class="footer">
             <a href="https://github.com/openwriteio/openwrite/">Github</a>
             <a href="https://hub.docker.com/r/openwrite/openwrite">Dockerhub</a>
-            <a href="https://ko-fi.com/openwrite">{{ g.trans["buy_coffee"] }}</a>
-            <a href="https://main.openwrite.io/contact">{{ g.trans['contact'] }}</a>
-            <p>{{ g.trans["language"] }}: </p>
+            <a href="https://ko-fi.com/openwrite">{{ _('buy_coffee') }}</a>
+            <a href="https://main.openwrite.io/contact">{{ _('contact') }}</a>
+            <p>{{ _('language') }}: </p>
             <select name="lang" onchange="location = '/set-lang/' + this.value">
                 {% for code in available_languages.keys() %}
-                <option value="{{ code }}" {% if code == current_lang %} selected {% endif %}>{{ available_languages[code].flag }} {{ available_languages[code].name }}</option>
+                <option value="{{ code }}" {% if code == current_lang %} selected {% endif %}>{{ available_languages[code].name }}</option>
                 {% endfor %}
             </select>
         </footer>

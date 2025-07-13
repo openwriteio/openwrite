@@ -123,6 +123,7 @@ def edit_blog(name):
         p.views = v
 
     themes = get_themes()
+    themes.append("default")
 
     if request.method == "GET":
         return render_template("edit.html", blog=blog, posts=posts, themes=themes)
@@ -136,10 +137,7 @@ def edit_blog(name):
     blog.updated = now   
     blog.title = request.form.get("title")
     selected_theme = request.form.get("theme")
-    themes_plus = themes
-    themes_plus.append("default")
-    if selected_theme not in themes_plus:
-        print(f"{selected_theme} in {themes}?")
+    if selected_theme not in themes:
         return render_template("edit.html", blog=blog, posts=posts, themes=themes, error="Wrong theme!")
     blog.theme = selected_theme
     g.db.commit()

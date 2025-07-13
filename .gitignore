@@ -54,6 +54,7 @@ db.sqlite
 # temps
 logs/
 uploads/
+.initialized
 
 # gemini
 gemini/

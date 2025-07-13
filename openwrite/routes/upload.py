@@ -47,7 +47,7 @@ def upload_image():
 
     m = hashlib.md5()
     m.update(filename.encode() + user.username.encode())
-    filename = f"{user.username}_{m.hexdigest()}.{extension}"
+    filename = f"{m.hexdigest()}.{extension}"
 
     if STORAGE_BACKEND == "bunny":
         url = f"https://storage.bunnycdn.com/{BUNNY_ZONE}/{filename}"

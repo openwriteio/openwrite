@@ -25,7 +25,7 @@ def register():
     form_password2 = request.form.get('password2')
 
     if form_password != form_password2:
-        return render_template("register.html", error=g.trans['password_dont_match'])
+        return render_template("register.html", error=g.trans['passwords_dont_match'])
 
     user = g.db.query(User).filter_by(username=form_username).first()
     if user:

@@ -6,25 +6,25 @@
     {% endif %}
 
     <form method="post" action="/dashboard/create">
-        <span class="form-field">{{ g.trans['choose_blog_title'] }}:</span>
+        <span class="form-field">{{ _('choose_blog_title') }}:</span>
         <input type="text" name="name" class="medium" placeholder="my awesome blog" required>
-        <span class="form-field">{{ g.trans['choose_blog_url'] }}:</span>
+        <span class="form-field">{{ _('choose_blog_url') }}:</span>
         <input id="url" oninput="change_url();" type="text" name="url" class="medium" placeholder="my-awesome-blog" required>
 
-        <span class="form-field" style="margin-top: 2rem;">{{ g.trans['access_blog_how'] }}?</span>
+        <span class="form-field" style="margin-top: 2rem;">{{ _('access_blog_how') }}?</span>
         <div class="horizontal-fields">
             <input type="radio" id="domain" name="access" value="domain">
-            <label for="domain">{{ g.trans['domain_name'] }}: <i><span id="bname">my-awesome-blog</span>.{{ g.main_domain }}</i></label>
+            <label for="domain">{{ _('domain_name') }}: <i><span id="bname">my-awesome-blog</span>.{{ g.main_domain }}</i></label>
         </div>
         <div class="horizontal-fields">
             <input type="radio" id="path" name="access" value="path" checked>
-            <label for="path">{{ g.trans['path'] }}: <i>{{ g.main_domain }}/b/<span id="bname2">my-awesome-blog</span></i></label>
+            <label for="path">{{ _('path') }}: <i>{{ g.main_domain }}/b/<span id="bname2">my-awesome-blog</span></i></label>
         </div>
         <div class="horizontal-fields" style="margin-top: 2rem;">
             <input type="checkbox" name="index" id="index">
-            <label for="index">{{ g.trans['index_blog'] }}?</label>
+            <label for="index">{{ _('index_blog') }}?</label>
         </div>
-        <input type="submit" value="{{ g.trans['create'] }}" class="btn purple">
+        <input type="submit" value="{{ _('create') }}" class="btn purple">
     </form>
 </article>
 
