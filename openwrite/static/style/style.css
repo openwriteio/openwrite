@@ -52,6 +52,15 @@
     .horizontal-fields {
         flex-direction: column !important;
     }
+
+    footer.footer {
+        flex-direction: column !important;
+    }
+
+    .discover_post {
+        flex-direction: column !important;
+        gap: unset !important;
+    }
 }
 
 body {
@@ -608,4 +617,10 @@ a.link {
 
 a.link:hover {
     text-decoration: underline;
+}
+
+.discover_post {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
 }
