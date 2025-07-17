@@ -12,6 +12,10 @@
     {% endif %}
     {% if 'dashboard/edit' in request.path %}
     <script src="{{ url_for('static', filename='script/showdown.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/nativeEmoji.min.css') }}">
+    {% endif %}
+    {% if 'dashboard/page' in request.path %}
+    <script src="{{ url_for('static', filename='script/showdown.min.js') }}"></script>
     {% endif %}
     {% if 'dashboard/post' in request.path %}
     <script src="{{ url_for('static', filename='script/showdown.min.js') }}"></script>

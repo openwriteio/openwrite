@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, request, g, abort
-from openwrite.utils.models import Blog, Post, User, View
+from openwrite.utils.models import Blog, Post, User, View, Page
 from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity, is_html, get_themes
 import requests
 from sqlalchemy import desc
@@ -12,6 +12,7 @@ import bcrypt
 import markdown
 from bs4 import BeautifulSoup
 from user_agents import parse
+import re
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -79,16 +80,31 @@ def create_blog():
             name=form_url,
             index=form_index,
             access=form_access,
-            description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](https://{g.main_domain}/dashboard/edit/{form_url})",
-            description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"https://{g.main_domain}/dashboard/edit/{form_url}\">dashboard</a></p>",
             css="",
+            description_raw="x",
+            description_html="x",
             pub_key=public_pem,
             priv_key=private_pem,
             theme="default",
+            favicon="",
             created=now
         )
         g.db.add(new_blog)
         g.db.commit()
+
+        b_id = g.db.query(Blog).filter_by(name=form_url).first().id
+
+        new_page = Page(
+            blog=b_id,
+            name="Home",
+            url="",
+            content_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog home page in [dashboard](https://{g.main_domain}/dashboard/edit/{form_url})\n\n---\n### Posts\n\n{{posts}}",
+            content_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog home page in <a href=\"https://{g.main_domain}/dashboard/edit/{form_url}\">dashboard</a></p>\n\n<hr>\n<h3>Posts\n\n{{posts}}",
+            show="off"
+        )
+        g.db.add(new_page)
+        g.db.commit()
+           
         return redirect("/dashboard")
     except Exception:
         return render_template("create.html", error=g.trans['error'])
@@ -122,27 +138,28 @@ def edit_blog(name):
         v = g.db.query(View).filter(View.post == p.id, View.blog == blog.id).count()
         p.views = v
 
+    pages = g.db.query(Page).filter_by(blog=blog.id).all()
+
     themes = get_themes()
     themes.append("default")
 
     if request.method == "GET":
-        return render_template("edit.html", blog=blog, posts=posts, themes=themes)
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages)
 
     now = datetime.now(timezone.utc).replace(microsecond=0)
-    blog.description_raw = request.form.get("description_raw")
-    blog.description_html = sanitize_html(request.form.get("description_html"))
     if len(request.form.get("title")) > 30:
-        return render_template("edit.html", blog=blog, posts=posts, themes=themes, error="Title too long! Max 30 characters.")
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages, error="Title too long! Max 30 characters.")
     blog.css = safe_css(request.form.get("css"))
     blog.updated = now   
     blog.title = request.form.get("title")
+    blog.favicon = request.form.get("icon")[:10]
     selected_theme = request.form.get("theme")
     if selected_theme not in themes:
-        return render_template("edit.html", blog=blog, posts=posts, themes=themes, error="Wrong theme!")
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages, error="Wrong theme!")
     blog.theme = selected_theme
     g.db.commit()
 
-    return render_template("edit.html", blog=blog, posts=posts, themes=themes)
+    return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages)
 
 @dashboard_bp.route("/dashboard/post/<name>", methods=['GET', 'POST'])
 def new_post(name):
@@ -164,7 +181,9 @@ def new_post(name):
     link = gen_link(title)
     if link == "rss":
         link = "p_rss"
-    dupes = g.db.query(Post).filter(Post.link.startswith(link), Post.blog == blog.id).count()
+    dupes_posts = g.db.query(Post).filter(Post.link.startswith(link), Post.blog == blog.id).count()
+    dupes_pages = g.db.query(Page).filter(Page.url == link, Page.blog == blog.id).count()
+    dupes = dupes_posts + dupes_pages
     if dupes > 0:
         link += f"-{dupes + 1}"
 
@@ -246,11 +265,20 @@ def blog_preview():
         return redirect("/login")
 
     u = g.db.query(User).filter_by(id=g.user).first()
+    blog_name = request.referrer.split("/")[-1]
+    blog = g.db.query(Blog).filter_by(name=blog_name).first()
+    if not blog:
+        return redirect("/")
+
+    homepage = g.db.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
     data = {
         'title': request.form.get('title'),
-        'content': sanitize_html(request.form.get('content')),
+        'css': request.form.get('css'),
+        'icon': request.form.get('icon'),
+        'content': homepage.content_html,
         'theme': request.form.get('theme')
     }
+
 
     return render_template("blog_preview.html", data=data)
 
@@ -277,7 +305,9 @@ def edit_post(blog, post):
     link = gen_link(title)
     if link == "rss":
         link = "p_rss"
-    dupes = g.db.query(Post).filter(Post.link.startswith(link), Post.blog == blog_obj.id).count()
+    dupes_posts = g.db.query(Post).filter(Post.link.startswith(link), Post.blog == blog_obj.id).count()
+    dupes_pages = g.db.query(Page).filter(Page.url == link, Page.blog == blog_obj.id).count()
+    dupes = dupes_posts + dupes_pages
     if dupes > 0 and link != post:
         link += f"-{dupes + 1}"
 
@@ -407,3 +437,127 @@ def get_stats(blog, post, limit):
         views_obj["views"].append([v.date, os, browser])
 
     return views_obj
+
+@dashboard_bp.route("/dashboard/page/<blog>", methods=['GET', 'POST'])
+def new_page(blog):
+    if g.user is None:
+        abort(403)
+    blog = g.db.query(Blog).filter_by(name=blog).first()
+
+    if not blog:
+        abort(404)
+
+    if blog.owner != g.user:
+        abort(403)
+
+    if request.method == "GET":
+        return render_template("new_page.html", blog=blog)
+
+    name = request.form.get("name")
+    url = request.form.get("url")
+    content_raw = request.form.get("content_raw")
+    content_html = request.form.get("content")
+    show = request.form.get("show")
+    if len(name) > 120:
+        return render_template("new_page.html", blog=blog, error="Name too long! Max 120 characters")
+    if not re.match(r"^\/[a-zA-Z0-9\-\_]+$", url):
+        return render_template("new_page.html", blog=blog, error="Invalid URL!")
+
+    url = url[1:]
+    if url == "rss":
+        url = "p_rss"
+    dupes_posts = g.db.query(Post).filter(Post.link.startswith(url), Post.blog == blog.id).count()
+    dupes_pages = g.db.query(Page).filter(Page.url == url, Page.blog == blog.id).count()
+    dupes = dupes_posts + dupes_pages
+    if dupes > 0:
+        url = f"{url}-{dupes + 1}"
+
+    new_page = Page(blog=blog.id, name=name, url=url, content_raw=content_raw, content_html=sanitize_html(content_html), show=show)
+
+    g.db.add(new_page)
+    g.db.commit()
+    return redirect(f"/dashboard/edit/{blog.name}")
+
+@dashboard_bp.route("/dashboard/page/<page>/edit", methods=['GET', 'POST'])
+def edit_page(page):
+    if g.user is None:
+        abort(403)
+
+    page = g.db.query(Page).filter_by(id=page).first()
+    if not page:
+        abort(404)
+    blog = g.db.query(Blog).filter_by(id=page.blog).first()
+
+    if not blog:
+        abort(404)
+
+    if blog.owner != g.user:
+        abort(403)
+    home = False
+    if page.url == "":
+        home = True
+
+    if request.method == 'GET':
+        return render_template("new_page.html", blog=blog, page=page, home=home)
+
+    name = request.form.get("name")
+    content_raw = request.form.get("content_raw")
+    content_html = request.form.get("content")
+    show = request.form.get("show")
+    url = request.form.get("url")
+    if len(name) > 120:
+        return render_template("new_page.html", blog=blog, page=page, home=home, error="Name too long!")
+    if home == False:
+        if not re.match(r"^\/[a-zA-Z0-9\-\_]+$", url):
+            return render_template("new_page.html", blog=blog, error="Invalid URL!")
+
+        url = url[1:]
+        if url == "rss":
+            url = "p_rss"
+        dupes_posts = g.db.query(Post).filter(Post.link.startswith(url), Post.blog == blog.id).count()
+        dupes_pages = g.db.query(Page).filter(Page.url == url, Page.blog == blog.id).count()
+        dupes = dupes_posts + dupes_pages
+        if dupes > 0 and url != page.url:
+            url = f"{url}-{dupes + 1}"
+
+    page.name = name
+    page.content_raw = content_raw
+    page.content_html = sanitize_html(content_html)
+    page.show = show
+    if home == False:
+        page.url = url
+
+    g.db.commit()
+    return redirect(f"/dashboard/edit/{blog.name}")
+
+@dashboard_bp.route("/dashboard/page_preview", methods=['POST'])
+def page_preview():
+    if g.user is None:
+        return redirect("/")
+
+    data = {
+        'name': request.form.get('name'),
+        'content': sanitize_html(request.form.get('content')),
+        'blog_title': request.form.get('blog_title'),
+        'blog_name': request.form.get('blog_name'),
+        'theme': request.form.get('theme')
+    }
+
+    return render_template("page_preview.html", data=data)
+
+
+@dashboard_bp.route("/dashboard/page/<page>/delete")
+def page_delete(page):
+    if g.user is None:
+        return redirect("/")
+
+    page = g.db.query(Page).filter_by(id=page).first()
+    blog = g.db.query(Blog).filter_by(id=page.blog).first()
+
+    if blog.owner != g.user:
+        return abort(403)
+
+    g.db.delete(page)
+    g.db.commit()
+
+    return redirect(f"/dashboard/edit/{blog.name}")

@@ -3,20 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[preview] {{ data.title }}</title>
+    <title>[preview] {{ data.blog_title }}</title>
     <meta name="description" content="Minimalist, opensource blog. Write, freely.">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/hl.css') }}">
-    {% if data.icon != "" %}
-    <link rel="icon" href="data:image/svg+xml,
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>
-  <text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-size='12'>
-    {{ data.icon }}
-  </text>
-</svg>" />
-    {% else %}
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    {% endif %}
     <script src="{{ url_for('static', filename='highlight.min.js') }}"></script>
     <script nonce="{{ g.nonce }}">hljs.highlightAll();</script>
     <script src="{{ url_for('static', filename='openwrite.js') }}"></script>
@@ -26,17 +17,17 @@
 </head>
 {% if '{posts}' in data.content %}
 {% set posts_html %}
-    <div class="postlist_item">
-        <i class="datetime">01.01.1970, 00:01</i>
-        -
-        <a href="#">{{ _('post') }} 1</a>
-    </div>
+<div class="postlist_item">
+    <i class="datetime">01.01.1970, 00:01</i>
+    -
+    <a href="#">{{ g.trans['post'] }} 1</a>
+</div>
 {% endset %}
 {% endif %}
 <body>
     <div class="container">
         <header class="header">
-            <h1 class="blog-name"><a href="#"><span>{{ data.title }}</span></a></h1>
+            <h1 class="blog-name"><a href="#"><span>{{ data.blog_title }}</span></a></h1>
             <div id="menu">
             </div>
         </header>

@@ -32,7 +32,7 @@ def create_app(test_config=None):
         file_cwd = "/".join(f_abs_path.split("/")[:-1])
         from .utils.create_db import init_db
         init_db(db_type, db_path)
-        from .utils.models import User, Blog, Post, Settings, Home
+        from .utils.models import User, Blog, Post, Settings, Home, Page
         from .utils.db import init_engine, SessionLocal
         init_engine(db_type, db_path)
         from .utils.db import SessionLocal
@@ -68,15 +68,26 @@ def create_app(test_config=None):
                 title=domain, 
                 index="on", 
                 access="domain",
-                description_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog description in [dashboard](http://{domain}/dashboard/edit/default)",
-                description_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog description in <a href=\"http://{domain}/dashboard/edit/default\">dashboard</a></p>",
                 css="",
+                description_raw="x",
+                description_html="x",
                 pub_key=public_pem,
                 priv_key=private_pem,
                 theme="default",
+                favicon="",
                 created=now
             )
             SessionLocal.add(new_blog)
+            
+            new_page = Page(
+                blog=1,
+                name="Home",
+                url="",
+                content_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog home page in [dashboard](https://{domain}/dashboard/page/1/edit)\n\n---\n### Posts\n\n{{posts}}",
+                content_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog home page in <a href=\"https://{domain}/dashboard/page/1/edit\">dashboard</a></p>\n\n<hr>\n<h3>Posts\n\n{{posts}}",
+                show="off"
+            )
+            SessionLocal.add(new_page)
 
         hometext_pl = """
                  <h1 class="centered"><span style="color: #f2d2c8">cicha</span> przestrzeń na <span style="color: #5a36bf">głośne</span> myśli.</h1>

@@ -26,6 +26,11 @@ def test_edit_post(client):
     assert edit_post.status_code == 200
     assert b"Include author" in edit_post.data
 
+def test_add_page(client):
+    add_page = client.get("/dashboard/page/default")
+    assert add_page.status_code == 200
+    assert b"URL" in add_page.data
+
 def test_stats(client):
     stats = client.get("/dashboard/get_stats/1/1/24")
     assert stats.status_code == 200

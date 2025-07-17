@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, request, g, Response, abort
-from openwrite.utils.models import Blog, Post, User, View, Like
+from openwrite.utils.models import Blog, Post, User, View, Like, Page
 from openwrite.utils.helpers import gen_link, sanitize_html, anonymize, get_ip
 from feedgen.feed import FeedGenerator
 from sqlalchemy import desc
@@ -20,10 +20,14 @@ def show_blog(blog):
     if blog.access == "domain":
         return redirect(f"https://{blog.name}.{os.getenv('DOMAIN')}/")
 
-    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+    pages = g.db.query(Page).filter_by(blog=blog.id).all()
     blog.url = f"/b/{blog.name}"
+    homepage = g.db.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
+    if "{posts}" in homepage.content_raw:
+        posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+        return render_template("blog.html", blog=blog, page=homepage, posts=posts, pages=pages)
 
-    return render_template("blog.html", blog=blog, posts=posts)
+    return render_template("blog.html", blog=blog, page=homepage, pages=pages)
 
 @blog_bp.route("/", subdomain="<blog>")
 def show_subblog(blog):
@@ -36,9 +40,13 @@ def show_subblog(blog):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}")
 
-    posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+    pages = g.db.query(Page).filter_by(blog=blog.id).all()
+    homepage = g.db.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
+    if "{posts}" in homepage.content_raw:
+        posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+        return render_template("blog.html", blog=blog, page=homepage, posts=posts, pages=pages)
 
-    return render_template("blog.html", blog=blog, posts=posts)
+    return render_template("blog.html", blog=blog, page=homepage, pages=pages)
 
 @blog_bp.route("/b/<blog>/<post>")
 def show_post(blog, post):
@@ -54,9 +62,21 @@ def show_post(blog, post):
     if blog.access == "domain":
         return redirect(f"https://{blog.name}.{os.getenv('DOMAIN')}/{post}")
 
+    blog.url = f"/b/{blog.name}"
+    pages = g.db.query(Page).filter_by(blog=blog.id).all()
     one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
     if not one_post:
-        return redirect("/")
+        page = g.db.query(Page).filter(Page.blog == blog.id, Page.url == post).first()
+        if not page:
+            return redirect("/")
+
+        if "{posts}" in page.content_raw:
+            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+
+            return render_template("blog.html", blog=blog, page=page, posts=posts, pages=pages)
+        
+        return render_template("blog.html", blog=blog, page=page, pages=pages)
+
 
     post_author = g.db.query(User).filter_by(id=blog.owner).first()
     one_post.authorname = post_author.username
@@ -76,7 +96,7 @@ def show_post(blog, post):
     one_post.liked = liked
 
     user = g.db.query(User).filter_by(id=g.user) if g.user else None
-    return render_template("post.html", blog=blog, post=one_post, user=user, views=v, likes=likes)
+    return render_template("post.html", blog=blog, post=one_post, user=user, views=v, likes=likes, pages=pages)
 
 @blog_bp.route("/<post>", subdomain="<blog>")
 def show_subpost(blog, post):
@@ -92,9 +112,20 @@ def show_subpost(blog, post):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{post}")
 
+    pages = g.db.query(Page).filter_by(blog=blog.id).all()
     one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
+
     if not one_post:
-        return redirect("/")
+        page = g.db.query(Page).filter(Page.blog == blog.id, Page.url == post).first()
+        if not page:
+            return redirect("/")
+
+        if "{posts}" in page.content_raw:
+            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+
+            return render_template("blog.html", blog=blog, page=page, posts=posts, pages=pages)
+        
+        return render_template("blog.html", blog=blog, page=page, pages=pages)
 
     post_author = g.db.query(User).filter_by(id=blog.owner).first()
     one_post.authorname = post_author.username
@@ -115,7 +146,7 @@ def show_subpost(blog, post):
     one_post.liked = liked
 
     user = g.db.query(User).filter_by(id=g.user) if g.user else None
-    return render_template("post.html", blog=blog, post=one_post, user=user, views=v)
+    return render_template("post.html", blog=blog, post=one_post, user=user, views=v, pages=pages)
 
 @blog_bp.route("/p/<post>")
 def single_showpost(post):
@@ -123,9 +154,22 @@ def single_showpost(post):
         return redirect("/")
 
     blog = g.db.query(Blog).filter_by(id=1).first()
+    blog.url = f"http://{g.main_domain}"
     one_post = g.db.query(Post).filter(Post.blog == 1, Post.link == post).first()
+
+    pages = g.db.query(Page).filter_by(blog=1).all()
+
     if not one_post:
-        return redirect("/")
+        page = g.db.query(Page).filter(Page.blog == blog.id, Page.url == post).first()
+        if not page:
+            return redirect("/")
+
+        if "{posts}" in page.content_raw:
+            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+
+            return render_template("blog.html", blog=blog, page=page, posts=posts, pages=pages)
+        
+        return render_template("blog.html", blog=blog, page=page, pages=pages)
 
     post_author = g.db.query(User).filter_by(id=1).first()
     one_post.authorname = post_author.username
@@ -145,7 +189,7 @@ def single_showpost(post):
     one_post.liked = liked
 
     user = g.db.query(User).filter_by(id=g.user) if g.user else None
-    return render_template("post.html", blog=blog, post=one_post, user=user, views=v)
+    return render_template("post.html", blog=blog, post=one_post, user=user, views=v, pages=pages)
 
 @blog_bp.route("/rss")
 def single_rss():

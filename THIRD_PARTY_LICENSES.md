@@ -113,6 +113,10 @@ License: MIT
 
 https://github.com/chartjs/Chart.js
 
+### Native Emoji Picker
+License: MIT
+
+https://github.com/dshemendiuk/native-emoji-picker
 
 ---
 

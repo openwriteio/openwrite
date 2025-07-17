@@ -1,0 +1,391 @@
+body {
+    background: #0a0a0f;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+    background-attachment: fixed;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    position: relative;
+}
+
+header.header {
+    text-align: center;
+    border-bottom: none;
+    padding: 1rem 0;
+    position: relative;
+    background: rgba(16, 16, 32, 0.6);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+header.header::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(0, 255, 255, 0.2), rgba(0, 255, 255, 0.1), rgba(0, 255, 255, 0.2));
+    border-radius: 12px;
+    z-index: -1;
+    animation: borderGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes borderGlow {
+    0% { opacity: 0.2; }
+    100% { opacity: 0.4; }
+}
+
+h1.blog-name {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    position: relative;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+h1.blog-name a {
+    color: #9090a0;
+    text-decoration: none;
+    text-shadow: 
+        0 0 8px rgba(144, 144, 160, 0.3),
+        0 0 15px rgba(144, 144, 160, 0.2),
+        0 0 25px rgba(144, 144, 160, 0.1);
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+h1.blog-name a:hover {
+    color: #b0b0c0;
+    text-shadow: 
+        0 0 10px rgba(176, 176, 192, 0.4),
+        0 0 20px rgba(176, 176, 192, 0.3),
+        0 0 30px rgba(176, 176, 192, 0.2);
+    transform: scale(1.02);
+}
+
+h1.blog-name a::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: #80808a;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+h1.blog-name a:hover::after {
+    opacity: 0.2;
+    animation: glitch 0.5s ease-in-out;
+}
+
+@keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+.header #menu {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 0;
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.header #menu a {
+    color: #a0a0a0;
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 20px;
+    background: rgba(0, 255, 255, 0.05);
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+}
+
+.header #menu a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.header #menu a:hover {
+    color: #00ffff;
+    border-color: #00ffff;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.header #menu a:hover::before {
+    left: 100%;
+}
+
+.header #menu a svg {
+    fill: #a0a0a0;
+    transition: fill 0.3s ease;
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.header #menu a:hover svg {
+    fill: #00ffff;
+}
+
+article.blog-content {
+    background: rgba(16, 16, 32, 0.6);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 2.5rem;
+    margin-top: 2rem;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+article.blog-content h3 {
+    color: #ff00ff;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+    border-bottom: 2px solid rgba(255, 0, 255, 0.3);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+article.post-content {
+    color: #d0d0d0;
+    line-height: 1.7;
+}
+
+article.post-content a {
+    color: #00ffff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+article.post-content a:hover {
+    color: #ff00ff;
+    border-bottom-color: #ff00ff;
+    text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+}
+
+h1.post-title {
+    color: #ffffff;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    border-left: 4px solid #00ffff;
+    padding-left: 1rem;
+    position: relative;
+}
+
+h1.post-title::before {
+    content: '▶';
+    position: absolute;
+    left: -0.5rem;
+    color: #00ffff;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+article.post-content h1,
+article.post-content h2,
+article.post-content h3,
+article.post-content h4,
+article.post-content h5 {
+    color: #00ffff;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+i.post-date {
+    color: #888;
+    font-style: italic;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+i.post-date::before {
+    content: '◉';
+    position: absolute;
+    left: 0;
+    color: #ff00ff;
+    animation: blink 3s infinite;
+}
+
+@keyframes blink {
+    0%, 90% { opacity: 1; }
+    95% { opacity: 0; }
+}
+
+article.post-content blockquote {
+    color: #b0b0b0;
+    border-left: 4px solid #ff00ff;
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+    background: rgba(255, 0, 255, 0.05);
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+}
+
+pre code.hljs {
+    background: #000010 !important;
+    color: #00ff00;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 0, 0.1),
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+p code {
+    background: rgba(0, 255, 0, 0.1);
+    color: #00ff00;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00ffff, #ff00ff);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ff00ff, #00ffff);
+}
+
+@media only screen and (max-width: 768px) {
+    .container {
+        padding: 1rem 0.5rem;
+    }
+    
+    header.header {
+        padding: 1rem 0;
+    }
+    
+    h1.blog-name {
+        font-size: 1.6rem;
+        letter-spacing: 2px;
+        padding: 0.8rem;
+    }
+    
+    .header #menu {
+        gap: 0.5rem;
+        padding: 0.8rem;
+    }
+    
+    .header #menu a {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.7rem;
+    }
+    
+    article.blog-content {
+        padding: 1.5rem;
+    }
+    
+    h1.post-title {
+        font-size: 1.8rem;
+    }
+}
+
+::selection {
+    background: rgba(0, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+::-moz-selection {
+    background: rgba(0, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+.header #menu a:focus {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+}
+
+.postlist_item {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.postlist_item:hover {
+    background: rgba(0, 255, 255, 0.03);
+    padding-left: 1rem;
+}
+
+.postlist_item a {
+    color: #00ffff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.postlist_item a:hover {
+    color: #ff00ff;
+    text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+}
+
+.postlist_item i.datetime {
+    color: #888;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+}

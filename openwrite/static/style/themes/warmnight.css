@@ -17,6 +17,11 @@ h1.blog-name a {
     color: #202020;
 }
 
+.header #menu a {
+    text-decoration: underline;
+    color: #ffa489;
+}
+
 #menu a svg {
     fill: #F59D84;
 }

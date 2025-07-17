@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if blog.favicon != "" %}
+<link rel="icon" href="data:image/svg+xml,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>
+  <text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-size='12'>
+    {{ blog.favicon }}
+  </text>
+</svg>" />
+    {% else %}
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {% endif %}
     {% if blog.index == "off" %}<meta name="robots" content="noindex, nofollow"> {% endif %}
     <title>{% if post %}{{ post.title }} | {% endif %}{{ blog.title }}</title>
     <meta name="description" content="Minimalist, opensource blog. Write, freely.">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/hl.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
     <script src="{{ url_for('static', filename='script/highlight.min.js') }}"></script>
     <script nonce="{{ g.nonce }}">hljs.highlightAll();</script> 
     <script src="{{ url_for('static', filename='script/openwrite.js') }}"></script>
@@ -33,6 +43,11 @@
             <h1 class="blog-name"><a href="http://{{ g.main_domain }}"><span>{{ blog.title }}</span></a></h1>
             {% endif %}
             <div id="menu">
+                    {% for page in pages %}
+                    {% if page.show == "1" %}
+                    <a href="{{ blog.url }}{% if page.url != "" %}{% if g.mode == "multi" %}/{% else %}/p/{% endif %}{% endif %}{{ page.url }}">{{ page.name }}</a>
+                    {% endif %}
+                    {% endfor %}
                     <a href="{{ blog.url }}/rss">
 <svg fill="#FFFFFF" width="20px" height="20px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
 <path d="M20.885 30.996h-5.83c-0.037-7.745-6.306-14.014-14.047-14.052h-0.004v-5.83c10.958 0.055 19.826 8.924 19.881 19.877l0 0.005zM5.117 22.767c0.001 0 0.001 0 0.002 0 2.272 0 4.114 1.842 4.114 4.114s-1.842 4.114-4.114 4.114c-2.271 0-4.113-1.84-4.114-4.111v-0c0.003-2.271 1.842-4.112 4.112-4.118h0.001zM24.996 30.996c-0.064-13.225-10.767-23.928-23.986-23.993l-0.006-0v-5.998c16.531 0.082 29.91 13.461 29.991 29.984l0 0.008z"></path>

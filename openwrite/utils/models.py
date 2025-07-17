@@ -50,6 +50,7 @@ class Blog(Base):
     created = Column(DateTime, nullable=False)
     updated = Column(DateTime)
     theme = Column(String(50), nullable=False)
+    favicon = Column(String(10))
 
 class Post(Base):
     __tablename__ = "posts"
@@ -92,3 +93,17 @@ class Like(Base):
     post = Column(Integer, nullable=False)
     date = Column(DateTime)
 
+class Page(Base):
+    __tablename__ = "pages"
+
+    id = Column(Integer, primary_key=True)
+    blog = Column(Integer, nullable=False)
+    name = Column(String(30), nullable=False)
+    url = Column(String(30), nullable=False)
+    content_raw = Column(Text, nullable=False)
+    content_html = Column(Text, nullable=False)
+    show = Column(String(10), nullable=False)
+    
+    __table_args__ = (
+        Index("ix_page_blog", "blog"),
+    )

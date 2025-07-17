@@ -3,7 +3,7 @@ import os
 import json
 import datetime
 import requests
-from openwrite.utils.models import Post, Blog, Home, Settings
+from openwrite.utils.models import Post, Blog, Home, Settings, Page
 import time
 from openwrite import start_time
 
@@ -22,8 +22,14 @@ def index():
 
     elif g.mode == "single":
         blog = g.db.query(Blog).filter_by(name="default").first()
+        blog.url = f"http://{g.main_domain}"
+        page = g.db.query(Page).filter_by(blog=blog.id, url="").first()
+        pages = g.db.query(Page).filter_by(blog=blog.id).all()
+        if '{posts}' in page.content_raw:
+            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+            return render_template('blog.html', blog=blog, page=page, posts=posts, pages=pages)
         posts = g.db.query(Post).filter_by(blog=blog.id).all()
-        return render_template('blog.html', blog=blog, posts=posts)
+        return render_template('blog.html', blog=blog, posts=posts, page=page, pages=pages)
 
 @main_bp.route("/set-lang/<lang_code>")
 def set_lang(lang_code):

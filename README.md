@@ -31,6 +31,8 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Gemini protocol
 - Statistics per post
 - Multilanguage (currently English and Polish)
+- Custom favicon per blog
+- Subpages per blog
 
 
 ## Installation

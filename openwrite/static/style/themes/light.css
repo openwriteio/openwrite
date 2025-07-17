@@ -15,12 +15,22 @@ h1.blog-name a {
     color: #6834ab;
 }
 
+.header #menu a {
+    color: #6834ab;
+    font-weight: bold;
+}
+
+.header #menu a:hover {
+    text-decoration: underline;
+    color: #6834ab;
+}
+
 i.post-date {
     color: #505050;
 }
 
 svg {
-    fill: #9b4d10;
+    fill: #6834ab;
 }
 
 pre code.hljs {

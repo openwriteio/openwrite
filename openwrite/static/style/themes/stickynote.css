@@ -17,8 +17,18 @@ h1.blog-name a {
     color: #ffa489;
 }
 
-#menu a svg {
+.header #menu a svg {
     fill: #ffa489;
+}
+
+.header #menu a {
+    color: #ffa489;
+    font-weight: bold;
+}
+
+#menu a:hover {
+    color: #ffa489;
+    text-decoration: underline;
 }
 
 article.post-content {

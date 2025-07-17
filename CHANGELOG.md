@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2025-07-17
+### Added
+- Create subpages in blog
+- Choose custom favicon for blog
+- New theme: cyberpunk
+
+### Fixed
+- Few CSS fixes
+- Tests for new functionalities
+
 ## [0.11.0] - 2025-07-13
 ### Added
 - Moved translations to database

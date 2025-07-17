@@ -1,16 +1,18 @@
 {% include 'blog_header.html' %}
-           <article class="post-content">
-                {{ blog.description_html | safe }}
+{% if '{posts}' in page.content_html %}
+{% set posts_html %}
+    {% for post in posts %}
+        <div class="postlist_item">
+        <i class="datetime">{{ post.date }}</i> - {% if g.mode == "multi" %}<a href="{{ blog.url }}/{{ post.link }}">{{ post.title }}</a>{% else %}<a href="http://{{ g.main_domain }}/p/{{ post.link }}">{{ post.title }}</a>{% endif %}
+        </div>
+    {% endfor%}
+{% endset %}
+{% endif %}
+            <article class="post-content">
+                {% if '{posts}' in page.content_html %}
+                    {{ page.content_html.replace('{posts}', posts_html) | safe }}
+                {% else %}
+                    {{ page.content_html | safe }}
+                {% endif %}
             </article>
-            {% if posts | count > 0 %}
-            <hr>
-            <h3><b>{{ _('posts') }}</b></h3>
-            <article class="post-content" id="posts">
-                {% for post in posts %}
-                    <div class="postlist_item">
-                    <i class="datetime">{{ post.date }}</i> - {% if g.mode == "multi" %}<a href="{{ blog.url }}/{{ post.link }}">{{ post.title }}</a>{% else %}<a href="http://{{ g.main_domain }}/p/{{ post.link }}">{{ post.title }}</a>{% endif %}
-                    </div>
-                {% endfor%}
-            </article>
-            {% endif %}
 {% include 'blog_footer.html' %}

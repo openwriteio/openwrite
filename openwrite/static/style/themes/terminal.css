@@ -20,6 +20,15 @@ h1.post-title {
     fill: #00FF00;
 }
 
+.header #menu a {
+    color: #00FF00;
+}
+
+.header #menu a:hover {
+    color: #00FF00;
+    text-decoration: underline;
+}
+
 h1.blog-name a::before {
     content: '> ';
 }

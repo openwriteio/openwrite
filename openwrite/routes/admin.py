@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, redirect, g, request
+from flask import Blueprint, render_template, redirect, g, request, make_response
+import json
 from openwrite.utils.models import Blog, User, Settings, Home
 import re
 import bcrypt
@@ -13,6 +14,9 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 @admin_bp.route("/admin")
 def admin():
+    """
+    Admin dashboard to manage blogs and users.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
@@ -26,6 +30,9 @@ def admin():
 
 @admin_bp.route("/admin/delete_blog/<blog>")
 def admin_delete_blog(blog):
+    """
+    Delete a blog by its name.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
@@ -38,6 +45,9 @@ def admin_delete_blog(blog):
 
 @admin_bp.route("/admin/delete_user/<username>")
 def admin_delete_user(username):
+    """
+    Delete a user and all their blogs.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
@@ -59,6 +69,9 @@ def admin_delete_user(username):
 
 @admin_bp.route("/admin/make_admin/<username>")
 def admin_make_admin(username):
+    """
+    Grant admin privileges to a user.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
@@ -73,6 +86,9 @@ def admin_make_admin(username):
 
 @admin_bp.route("/admin/remove_admin/<username>")
 def admin_remove_admin(username):
+    """
+    Remove admin privileges from a user.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
@@ -90,6 +106,9 @@ def admin_remove_admin(username):
 
 @admin_bp.route("/admin/add_user", methods=['GET', 'POST'])
 def admin_add_user():
+    """
+    Add a new user to the system.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
     if request.method == "GET":
@@ -122,6 +141,9 @@ def admin_add_user():
 
 @admin_bp.route("/admin/settings", methods=['GET', 'POST'])
 def admin_settings():
+    """
+    Manage application settings.
+    """
     if g.user is None or g.isadmin == 0 or g.mode == "single":
         return redirect("/")
 
@@ -174,6 +196,14 @@ def admin_settings():
 
 @admin_bp.route("/admin/translations", methods=['GET', 'POST'])
 def translations():
+    """
+    Manage translations for the application.
+    Allows viewing, editing, and saving translations.
+    (I can't believe I didn't secured it earlier lol)
+    """
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
+        return redirect("/")
+
     if request.method == "GET":
         trans = g.db.query(Home).filter_by(type="translation").all()
         grouped = defaultdict(dict)
@@ -198,3 +228,21 @@ def translations():
 
     g.db.commit()
     return redirect("/admin/translations")
+
+@admin_bp.route("/admin/download_translations")
+def download_translations():
+    """
+    Download all translations as a json file.
+    """
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
+        return redirect("/")
+
+    translations = g.db.query(Home).filter_by(type="translation").all()
+    trans_dict = defaultdict(dict)
+    for t in translations:
+        trans_dict[t.language][t.name] = t.content
+    
+    response = make_response(json.dumps(dict(trans_dict), ensure_ascii=False))
+    response.headers["Content-Disposition"] = "attachment; filename=i18n.json"
+    response.headers["Content-Type"] = "application/json"
+    return response

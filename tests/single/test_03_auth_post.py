@@ -61,14 +61,41 @@ def test_edit_blog(client):
     """
     blog = client.post("/dashboard/edit/default", data={
         "title":"edited_title",
-        "description_raw":"edited_description",
-        "description_html":"<p>edited_description</p>",
         "css": "h1 { color: #deadbe; }",
+        "icon": "😍",
         "theme": "warmnight"
     })
 
     assert blog.status_code == 200
-    
+
+def test_add_page(client):
+    """
+    Test add new page
+    """
+    page = client.post("/dashboard/page/default", data={
+        "name": "test page",
+        "url": "/test-page",
+        "content_raw": "test page content",
+        "content": "<p>test page content</p>",
+        "show": "1"
+    })
+
+    assert page.status_code == 302
+
+def test_add_page2(client):
+    """
+    Test add new page
+    """
+    page = client.post("/dashboard/page/default", data={
+        "name": "qwerty",
+        "url": "/qwerty",
+        "content_raw": "test page content",
+        "content": "<p>test page content</p>",
+        "show": "0"
+    })
+
+    assert page.status_code == 302
+
 def test_get_blog(client):
     """
     Test edited blog
@@ -76,9 +103,19 @@ def test_get_blog(client):
     check_blog = client.get("/")
     assert check_blog.status_code == 200
     assert b"edited_title" in check_blog.data
-    assert b"edited_description" in check_blog.data
     assert b"deadbe" in check_blog.data
+    assert b"/p/test-page" in check_blog.data
     assert b"warmnight" in check_blog.data
+    assert b"/p/qwerty" not in check_blog.data
+
+def test_get_page(client):
+    """
+    Test newly added page
+    it should have url /test-page
+    """
+    check_page = client.get("/p/test-page")
+    assert check_page.status_code == 200
+    assert b"test page content" in check_page.data
 
 def test_upload(client):
     """

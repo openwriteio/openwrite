@@ -23,18 +23,20 @@ blog: {{ blog.name }}
 <a href="http://{{ g.main_domain }}" target="_blank" style="text-decoration: none; color: #fff">{{ g.main_domain }}</a><br>
 {% endif %}
 </span><br>
+<span class="bloginfo">
+{{ _('icon') }}: <input name="icon" maxlength="1" data-native-emoji="true" value="{{ blog.favicon }}" type="text" placeholder="♠️" style="max-width: 60px; height: 60px; font-size: 23px;" disabled="disabled">
+</span>
 <span class="bloginfo">{{ _('select_theme') }}: 
     <select name="theme" style="min-width: 14rem; min-height: 2rem; color: #fff; background: #211932;">
         {% for t in themes %}
         <option value="{{ t }}" {% if blog.theme == t %}selected{%endif %}>{{ t }}</option>
         {% endfor %}              
     </select>
-</span><a target="_blank" href="https://main.openwrite.io/available-themes" class="action">{{ _('see_themes') }}</a>
+    <a style="font-size: 16px;" target="_blank" href="https://main.openwrite.io/available-themes" class="action">{{ _('see_themes') }}</a>
+</span>
 </div>
 <a target="_blank" href="/dashboard/blog_preview" class="btn purple" id="preview">{{ _('preview') }}</a>
 </div>
-<span class="bloginfo">{{ _('description') }} (markdown): </span>
-<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="content" style="min-height: 200px; margin-bottom: 1rem; width: 100%">{{ blog.description_raw }}</textarea>
 <div style="display: flex; flex-direction: column; margin-bottom: 1rem">
 <span class="bloginfo">{{ _('custom_css') }}:</span>
 <i style="margin-bottom: 1rem;">{{ _('css_unsafe_info') }}</i>
@@ -42,12 +44,28 @@ blog: {{ blog.name }}
 </div>
 <div style="display: flex; justify-content: space-between">
     <input type="submit" id="submit" value="{{ _('save') }}" class="btn purple">
-    {% if g.upload_enabled %}
-    <a href="#" id="uploadLink" class="btn empty">📎 {{ _('upload_image') }}</a>
-    <input type="file" id="fileInput" style="display: none;">
-    {% endif %}
 </div>
 </form>
+
+<span class="bloginfo">{{ _('pages') }}:</span>
+<table class="posts" border="1">
+<thead>
+    <th width="20%">URL</th><th>{{ _('name') }}</th><th width="15%">{{ _('show-in-header') }}<th width="15%">{{ _('actions') }}</th>
+</thead>
+<tbody>
+{% for page in pages %}
+<tr>
+<td style="text-align: center; padding: 0.5rem;">/{{ page.url }}</td><td style="text-align: center">{{ page.name }}</td><td style="text-align: center;">{% if page.show == "1" %}{{ _('yes') }}{% else %}{{ _('no') }}{% endif %}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;">
+<a class="action" href="/dashboard/page/{{ page.id }}/edit">{{ _('edit') }}</a>
+<a class="action" href="/dashboard/page/{{ page.id }}/delete" onclick="return confirm('{{ _('are-you-sure-page') }} {{ page.name }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete') }}</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<div class="buttons-list">
+<a href="/dashboard/page/{{ blog.name }}" class="btn purple">{{ _('new-page') }}</a>
+</div>
 
 <span class="bloginfo">{{ _('posts') }}:</span>
 <table class="posts" border="1">
@@ -65,7 +83,13 @@ blog: {{ blog.name }}
 <a href="/dashboard/delete/{{ blog.name }}" class="btn red" onclick="return confirm('{{ _('are_you_sure_blog') }} {{ blog.name }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete_blog') }}</a>
 </div>
 </div>
+<script src="{{ url_for('static', filename='script/nativeEmoji.js')  }}"></script>
 <script nonce="{{ g.nonce }}">
+    
+    (() => {
+        new nativeEmoji()
+    })()
+
         var converter = new showdown.Converter();
     converter.setOption('emoji', true);
     converter.setOption('noHeaderId', true);
@@ -79,12 +103,11 @@ blog: {{ blog.name }}
         e.preventDefault();
 
         const form = document.querySelector('form');
-        const description_raw = form.querySelector('textarea[name="content"]').value;
 
-        const description_html = converter.makeHtml(description_raw);
         const title = form.querySelector('input[name="title"]').value;
         const css = form.querySelector('textarea[name="css"]').value;
         const theme_sel = form.querySelector('select[name="theme"]');
+        const icon = form.querySelector('input[name="icon"]').value;
         var theme = theme_sel.options[theme_sel.selectedIndex].value;
 
         const tempForm = document.createElement('form');
@@ -93,9 +116,8 @@ blog: {{ blog.name }}
         const date = new Date();
         const inputs = {
             title: title,
-            description_raw: description_raw,
-            description_html: description_html,
             css: css,
+            icon: icon,
             theme: theme
         };
 
@@ -113,54 +135,17 @@ blog: {{ blog.name }}
     });
 
    const editor = document.querySelector('textarea[name="content"]');
-    const uploadLink = document.getElementById("uploadLink");
-    const fileInput = document.getElementById("fileInput");
-
-    uploadLink.addEventListener("click", function(e) {
-      e.preventDefault(); 
-      fileInput.click(); 
-    });
-
-    fileInput.addEventListener("change", async () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      const cursorPos = editor.selectionStart;
-
-      try {
-        const res = await fetch("/upload_image", {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Upload failed");
-
-        const markdown = `![alt text](${data.url})`;
-
-        const text = editor.value;
-        editor.value = text.slice(0, cursorPos) + markdown + text.slice(cursorPos);
-        editor.selectionStart = editor.selectionEnd = cursorPos + markdown.length;
-        editor.focus();
-
-      } catch (err) {
-        alert("Upload failed: " + err.message);
-      } finally {
-        fileInput.value = ""; 
-      }
-    });
 
     document.getElementById('preview').addEventListener('click', function(e) {
         e.preventDefault();
 
         const form = document.querySelector('form');
         const title = form.querySelector('input[name="title"]').value;
-        const content_raw = form.querySelector('textarea[name="content"]').value;
-        const theme_sel = form.querySelector('select[name="theme"]');
-        var theme = theme_sel.options[theme_sel.selectedIndex].value;
+        const css = form.querySelector('textarea[name="css"]').value;
 
-        const content = converter.makeHtml(content_raw);
+        const theme_sel = form.querySelector('select[name="theme"]');
+        const icon = form.querySelector('input[name="icon"]').value;
+        var theme = theme_sel.options[theme_sel.selectedIndex].value;
 
         const tempForm = document.createElement('form');
         tempForm.method = 'POST';
@@ -169,7 +154,8 @@ blog: {{ blog.name }}
         const date = getUTCDate();
         const inputs = {
             title: title,
-            content: content,
+            css: css,
+            icon: icon,
             theme: theme
         };
 

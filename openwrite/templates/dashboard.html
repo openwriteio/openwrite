@@ -12,7 +12,7 @@
 {% for blog in blogs %}
 <div class="bloginfo">
 {% if g.mode == "multi" %}
-<h2><b>{{ blog.name }}</b></h2>
+<h2><b>{% if blog.favicon != "" %}{{ blog.favicon }} {% endif %}{{ blog.name }}</b></h2>
 {% endif %}
 <span class="bloginfo">{{ _('title') }}: {{ blog.title }}</span>
 <span class="bloginfo">URL: 

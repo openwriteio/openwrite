@@ -167,11 +167,12 @@ article.main-content form {
     gap: 1rem;
 }
 
+/*
 article.blog-content h3 {
     margin-top: 1rem;
     margin-bottom: 1rem;
 }
-
+*/
 .action-links {
     display: flex;
     flex-direction: column;
@@ -349,6 +350,7 @@ div.bloginfo {
 span.bloginfo {
     font-size: 20px;
     font-family: "IBMSansPlex";
+    margin-bottom: 1rem;
 }
 
 textarea.post_content {
@@ -401,7 +403,7 @@ article.post-content h1 {
     font-size: 30px;
 }
 
-article.post-content h1, article.post-content h2, article.post-content h3 {
+article.post-content h1, article.post-content h2 {
     margin-top: 1.5rem;
 }
 
@@ -501,6 +503,8 @@ div.postlist_item {
     display: flex;
     flex-direction: row;
     gap: 1rem;
+    margin-bottom: -10px;
+    align-items: center;
 }
 
 #like {
@@ -623,4 +627,10 @@ a.link:hover {
     display: flex;
     flex-direction: row;
     gap: 1rem;
+}
+
+form input:disabled {
+    color: #979797;
+    background: #1e182d;
+    box-shadow: none;
 }
