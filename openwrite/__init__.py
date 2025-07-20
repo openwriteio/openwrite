@@ -85,7 +85,7 @@ def create_app(test_config=None):
                 url="",
                 content_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog home page in [dashboard](https://{domain}/dashboard/page/1/edit)\n\n---\n### Posts\n\n{{posts}}",
                 content_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog home page in <a href=\"https://{domain}/dashboard/page/1/edit\">dashboard</a></p>\n\n<hr>\n<h3>Posts\n\n{{posts}}",
-                show="off"
+                show="0"
             )
             SessionLocal.add(new_page)
 

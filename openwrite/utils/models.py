@@ -64,6 +64,7 @@ class Post(Base):
     content_html = Column(Text, nullable=False)
     author = Column(String(10), nullable=False)
     feed = Column(String(10), nullable=False)
+    isdraft = Column(String(10), nullable=False)
     updated = Column(DateTime)
 
     __table_args__ = (

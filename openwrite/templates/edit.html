@@ -24,7 +24,7 @@ blog: {{ blog.name }}
 {% endif %}
 </span><br>
 <span class="bloginfo">
-{{ _('icon') }}: <input name="icon" maxlength="1" data-native-emoji="true" value="{{ blog.favicon }}" type="text" placeholder="♠️" style="max-width: 60px; height: 60px; font-size: 23px;" disabled="disabled">
+{{ _('icon') }}: <input name="icon" maxlength="1" data-native-emoji="true" value="{{ blog.favicon }}" type="text" style="max-width: 60px; height: 60px; font-size: 23px;" disabled="disabled">
 </span>
 <span class="bloginfo">{{ _('select_theme') }}: 
     <select name="theme" style="min-width: 14rem; min-height: 2rem; color: #fff; background: #211932;">
@@ -57,7 +57,7 @@ blog: {{ blog.name }}
 <tr>
 <td style="text-align: center; padding: 0.5rem;">/{{ page.url }}</td><td style="text-align: center">{{ page.name }}</td><td style="text-align: center;">{% if page.show == "1" %}{{ _('yes') }}{% else %}{{ _('no') }}{% endif %}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;">
 <a class="action" href="/dashboard/page/{{ page.id }}/edit">{{ _('edit') }}</a>
-<a class="action" href="/dashboard/page/{{ page.id }}/delete" onclick="return confirm('{{ _('are-you-sure-page') }} {{ page.name }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete') }}</a>
+{% if page.url != "" %}<a class="action" href="/dashboard/page/{{ page.id }}/delete" onclick="return confirm('{{ _('are-you-sure-page') }} {{ page.name }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete') }}</a>{% endif %}
 </td>
 </tr>
 {% endfor %}
@@ -70,11 +70,11 @@ blog: {{ blog.name }}
 <span class="bloginfo">{{ _('posts') }}:</span>
 <table class="posts" border="1">
 <thead>
-    <th width="20%">{{ _('date') }}</th><th>{{ _('title') }}</th><th width="5%">{{ _('views') }}<th width="15%">{{ _('actions') }}</th>
+    <th width="20%">{{ _('date') }}</th><th>{{ _('title') }}</th><th>{{ _('draft') }}</th><th width="5%">{{ _('views') }}<th width="15%">{{ _('actions') }}</th>
 </thead>
 <tbody>
 {% for post in posts %}
-    <tr><td style="text-align: center" class="datetime">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ _('edit') }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ _('are_you_sure_post') }} {{ post.title }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete') }}</a></td></tr>
+    <tr><td style="text-align: center" class="datetime">{{ post.date }}</td><td><a href="{% if blog.access == "path" %}https://{{ g.main_domain }}/b/{{ blog.name }}/{% else %}https://{{ blog.name }}.{{ g.main_domain }}/{% endif %}{{ post.link }}" class="action" target="_blank">{{ post.title }}</a></td><td>{% if post.isdraft == "1" %}{{ _('yes') }}{% else %}{{ _('no') }}{% endif %}</td><td style="text-align: center">{{ post.views }}</td><td style="display: flex; gap: 1rem; padding: 0.5rem; justify-content: space-between;"><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}">{{ _('edit') }}</a><a class="action" href="/dashboard/edit/{{ blog.name }}/{{ post.link }}/delete" onclick="return confirm('{{ _('are_you_sure_post') }} {{ post.title }}?\n{{ _('this_action_cannot_be_reverted') }}.')">{{ _('delete') }}</a></td></tr>
 {% endfor %}
 </tbody>
 </table>

@@ -99,8 +99,8 @@ def create_blog():
             name="Home",
             url="",
             content_raw=f"![hello](https://openwrite.b-cdn.net/hello.jpg =500x258)\n\n# Hello there! 👋\n\nYou can edit your blog home page in [dashboard](https://{g.main_domain}/dashboard/edit/{form_url})\n\n---\n### Posts\n\n{{posts}}",
-            content_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog home page in <a href=\"https://{g.main_domain}/dashboard/edit/{form_url}\">dashboard</a></p>\n\n<hr>\n<h3>Posts\n\n{{posts}}",
-            show="off"
+            content_html=f"<p><img src=\"https://openwrite.b-cdn.net/hello.jpg\" width=\"500\" height=\"258\"></p><h1>Hello there! 👋</h1><p>You can edit your blog home page in <a href=\"https://{g.main_domain}/dashboard/edit/{form_url}\">dashboard</a></p>\n\n<hr>\n<h3>Posts</h3>\n\n{{posts}}",
+            show="0"
         )
         g.db.add(new_page)
         g.db.commit()
@@ -177,6 +177,9 @@ def new_post(name):
     title = request.form.get('title')
     if len(title) > 120:
         return render_template("new_post.html", blog=blog, error="Title too long! Max 120 characters.")
+
+    if len(title) < 1:
+        return render_template("new_post.html", blog=blog, error="Title cannot be empty!")
         
     link = gen_link(title)
     if link == "rss":
@@ -198,7 +201,8 @@ def new_post(name):
         author=request.form.get('author'),
         link=link,
         date=now,
-        feed=request.form.get('feed')
+        feed=request.form.get('feed'),
+        isdraft=request.form.get('draft', '0')
     )
     g.db.add(post)
     g.db.commit()
@@ -319,6 +323,7 @@ def edit_post(blog, post):
     p.feed = request.form.get("feed")
     p.link = link
     p.updated = now
+    p.isdraft = request.form.get("draft", "0")
     g.db.commit()
     return redirect(f"/dashboard/edit/{blog_obj.name}")
 
@@ -556,6 +561,9 @@ def page_delete(page):
 
     if blog.owner != g.user:
         return abort(403)
+
+    if page.url == "":
+        return redirect("/dashboard")
 
     g.db.delete(page)
     g.db.commit()

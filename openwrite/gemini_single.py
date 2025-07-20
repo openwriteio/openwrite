@@ -11,17 +11,28 @@ def blog_index(req):
     global session
     try:
         blog = session.query(Blog).filter_by(name="default").first()
-        posts = (session.query(Post)
+                if not blog:
+                    return "not found"
+                posts = (session.query(Post)
                         .filter_by(blog=blog.id)
                         .order_by(Post.id.desc())
                         .all())
-        body = f"# 📓 {blog.title}\n\n"
-        body += md2gemini(blog.description_raw.replace("#", ""))
-        body += "\n--------------------------------------------------\n"
-        body += "### Posts:\n\n"
-        for post in posts:
-            body += f"=> /p/{post.link} {post.title}\n"
-        return body
+                pages = (session.query(Page)
+                        .filter(Page.blog == blog.id, Page.show == "1").all())
+                homepage = session.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
+                body = f"# 📓 {blog.title}\n\n"
+                posts_data = ""
+                for post in posts:
+                    posts_data += f"=> /b/{blogname}/{post.link} {post.title}\n\n"
+                pages_data = ""
+                for page in pages:
+                    pages_data += f"=> /b/{blogname}/{page.url} {page.name}\n\n"
+                content = pages_data + "\n"
+                content += homepage.content_raw.replace('{posts}', f"\n{posts_data}")
+                content = re.sub(r'!\[(.*?)\]\((.*?)\s*=\d+x\d+\)', r'![\1](\2)', content)
+                body += md2gemini(content)
+                
+                return body
     finally:
         session.close()
 
@@ -33,11 +44,23 @@ def blog_post(req):
         slug = path.split("/")[2]
         try:
             blog = session.query(Blog).filter_by(name="default").first()
-            post = (session.query(Post)
-                          .filter_by(blog=blog.id, link=slug)
-                          .first())
-            if not post:
+            if not blog:
                 return "not found"
+
+            post = (session.query(Post)
+                            .filter_by(blog=blog.id, link=slug, isdraft="0")
+                            .first())
+            if not post:
+                page = (session.query(Page)
+                            .filter_by(blog=blog.id, url=slug)
+                            .first())
+                if page:
+                    content = f"=> /b/{blog.name} 📓 {blog.title}\n\n"
+                    content += page.content_raw
+                    content = re.sub(r'!\[(.*?)\]\((.*?)\s*=\d+x\d+\)', r'![\1](\2)', content)
+                    return md2gemini(content)
+                else:
+                    return "not found"
             user = session.query(User).filter_by(id=blog.owner).first()
 
             now = datetime.now(timezone.utc)
@@ -55,7 +78,9 @@ def blog_post(req):
             if post.author != "0":
                 gemtext += f"by {post.authorname}"
             gemtext += "\n--------------------------------------------------\n"
-            gemtext += f"\n\n{md2gemini(post.content_raw)}"
+            content = post.content_raw
+            content = re.sub(r'!\[(.*?)\]\((.*?)\s*=\d+x\d+\)', r'![\1](\2)', content)
+            gemtext += f"\n\n{md2gemini(content)}\n\n"
             return gemtext
           
         finally:

@@ -15,6 +15,7 @@ openwrite is a minimalist blogging platform built for writing freely, hosting in
 - Single-blog mode
 - Supports sqlite and mysql databases
 - Upload images to local storage or bunny cdn
+- Drafts
 - Simple markdown editor in posting
 - Discover section
 - Privacy: 

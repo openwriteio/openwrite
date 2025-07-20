@@ -24,7 +24,7 @@ def show_blog(blog):
     blog.url = f"/b/{blog.name}"
     homepage = g.db.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
     if "{posts}" in homepage.content_raw:
-        posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+        posts = g.db.query(Post).filter(Post.blog == blog.id, Post.isdraft == "0").order_by(desc(Post.id)).all()
         return render_template("blog.html", blog=blog, page=homepage, posts=posts, pages=pages)
 
     return render_template("blog.html", blog=blog, page=homepage, pages=pages)
@@ -40,10 +40,11 @@ def show_subblog(blog):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}")
 
+    blog.url = f"https://{blog.name}.{os.getenv('DOMAIN')}"
     pages = g.db.query(Page).filter_by(blog=blog.id).all()
     homepage = g.db.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
     if "{posts}" in homepage.content_raw:
-        posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+        posts = g.db.query(Post).filter(Post.blog == blog.id, Post.isdraft == "0").order_by(desc(Post.id)).all()
         return render_template("blog.html", blog=blog, page=homepage, posts=posts, pages=pages)
 
     return render_template("blog.html", blog=blog, page=homepage, pages=pages)
@@ -64,14 +65,14 @@ def show_post(blog, post):
 
     blog.url = f"/b/{blog.name}"
     pages = g.db.query(Page).filter_by(blog=blog.id).all()
-    one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
+    one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post, Post.isdraft == "0").first()
     if not one_post:
         page = g.db.query(Page).filter(Page.blog == blog.id, Page.url == post).first()
         if not page:
             return redirect("/")
 
         if "{posts}" in page.content_raw:
-            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+            posts = g.db.query(Post).filter(Post.blog == blog.id, Post.isdraft == "0").order_by(desc(Post.id)).all()
 
             return render_template("blog.html", blog=blog, page=page, posts=posts, pages=pages)
         
@@ -112,8 +113,10 @@ def show_subpost(blog, post):
     if blog.access == "path":
         return redirect(f"https://{os.getenv('DOMAIN')}/b/{blog.name}/{post}")
 
+    blog.url = f"https://{blog.name}.{os.getenv('DOMAIN')}"
+
     pages = g.db.query(Page).filter_by(blog=blog.id).all()
-    one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post).first()
+    one_post = g.db.query(Post).filter(Post.blog == blog.id, Post.link == post, Post.isdraft == "0").first()
 
     if not one_post:
         page = g.db.query(Page).filter(Page.blog == blog.id, Page.url == post).first()
@@ -121,7 +124,7 @@ def show_subpost(blog, post):
             return redirect("/")
 
         if "{posts}" in page.content_raw:
-            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+            posts = g.db.query(Post).filter(Post.blog == blog.id, Post.isdraft == "0").order_by(desc(Post.id)).all()
 
             return render_template("blog.html", blog=blog, page=page, posts=posts, pages=pages)
         
@@ -155,7 +158,7 @@ def single_showpost(post):
 
     blog = g.db.query(Blog).filter_by(id=1).first()
     blog.url = f"http://{g.main_domain}"
-    one_post = g.db.query(Post).filter(Post.blog == 1, Post.link == post).first()
+    one_post = g.db.query(Post).filter(Post.blog == 1, Post.link == post, Post.isdraft == "0").first()
 
     pages = g.db.query(Page).filter_by(blog=1).all()
 
@@ -165,7 +168,7 @@ def single_showpost(post):
             return redirect("/")
 
         if "{posts}" in page.content_raw:
-            posts = g.db.query(Post).filter_by(blog=blog.id).order_by(desc(Post.id)).all()
+            posts = g.db.query(Post).filter(Post.blog == blog.id, Post.isdraft == "0").order_by(desc(Post.id)).all()
 
             return render_template("blog.html", blog=blog, page=page, posts=posts, pages=pages)
         
@@ -230,7 +233,7 @@ def like():
     
 
 def _generate_rss(blog):
-    posts = g.db.query(Post).filter_by(blog=blog.id).all()
+    posts = g.db.query(Post).filter(Post.blog == blog.id, Post.isdraft == "0").all()
     fg = FeedGenerator()
     fg.title(blog.title)
     fg.link(href=f"https://{os.getenv('DOMAIN')}/b/{blog.name}", rel="alternate")

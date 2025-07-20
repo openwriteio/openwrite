@@ -4,7 +4,7 @@
 <div style="display: flex; flex-direction: column; gap: 1rem">
 {% for p in posts %}
     <div class="discover_post">
-        <i class="datetime">{{ p.date }}</i>{{ p.blogname }}: <a class="action" href="{{ p.url }}" target="_blank">{{ p.title }}</a>
+        <i class="datetime">{{ p.date }}</i>{{ p.blogname }}: <a class="action" href="{{ p.url }}" target="_blank">{{ p.title }}</a> {{ p.likes }} ♡
     </div>
 {% endfor %}
 </div>

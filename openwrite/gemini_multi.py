@@ -1,10 +1,11 @@
 import os, subprocess
 from dotenv import load_dotenv
 from openwrite.utils.db import init_engine, SessionLocal
-from openwrite.utils.models import Blog, Post, User, View
+from openwrite.utils.models import Blog, Post, User, View, Page
 from openwrite.utils.helpers import anonymize
 from md2gemini import md2gemini
 from datetime import datetime, timezone
+import re
 session = None
 
 openwrite_logo = """
@@ -25,7 +26,7 @@ def root(req):
     resp += "In here you can read posts published.\n"
     resp += "\n## 🗞️ Latest posts:\n"
     try:
-        posts = (session.query(Post).filter_by(feed="1").order_by(Post.id.desc()).limit(10).all())
+        posts = (session.query(Post).filter(Post.feed == "1", Post.isdraft == "0").order_by(Post.id.desc()).limit(10).all())
         for p in posts:
             blog = session.query(Blog).filter_by(id=p.blog).first()
             resp += f"\n{p.date} - 📓 {blog.title}\n"
@@ -45,15 +46,24 @@ def blog_index(req):
                 if not blog:
                     return "not found"
                 posts = (session.query(Post)
-                                .filter_by(blog=blog.id)
-                                .order_by(Post.id.desc())
-                                .all())
+                        .filter_by(blog=blog.id, isdraft="0")
+                        .order_by(Post.id.desc())
+                        .all())
+                pages = (session.query(Page)
+                        .filter(Page.blog == blog.id, Page.show == "1").all())
+                homepage = session.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
                 body = f"# 📓 {blog.title}\n\n"
-                body += md2gemini(blog.description_raw.replace("#", ""))
-                body += "\n--------------------------------------------------\n"
-                body += "### Posts:\n\n"
+                posts_data = ""
                 for post in posts:
-                    body += f"=> /b/{blogname}/{post.link} {post.title}\n"
+                    posts_data += f"=> /b/{blogname}/{post.link} {post.title}\n\n"
+                pages_data = ""
+                for page in pages:
+                    pages_data += f"=> /b/{blogname}/{page.url} {page.name}\n\n"
+                content = pages_data + "\n"
+                content += homepage.content_raw.replace('{posts}', f"\n{posts_data}")
+                content = re.sub(r'!\[(.*?)\]\((.*?)\s*=\d+x\d+\)', r'![\1](\2)', content)
+                body += md2gemini(content)
+                
                 return body
             finally:
                 session.close()
@@ -67,10 +77,19 @@ def blog_index(req):
                     return "not found"
 
                 post = (session.query(Post)
-                              .filter_by(blog=blog.id, link=slug)
+                              .filter_by(blog=blog.id, link=slug, isdraft="0")
                               .first())
                 if not post:
-                    return "not found"
+                    page = (session.query(Page)
+                              .filter_by(blog=blog.id, url=slug)
+                              .first())
+                    if page:
+                        content = f"=> /b/{blog.name} 📓 {blog.title}\n\n"
+                        content += page.content_raw
+                        content = re.sub(r'!\[(.*?)\]\((.*?)\s*=\d+x\d+\)', r'![\1](\2)', content)
+                        return md2gemini(content)
+                    else:
+                        return "not found"
                 user = session.query(User).filter_by(id=blog.owner).first()
 
                 now = datetime.now(timezone.utc)
@@ -88,7 +107,9 @@ def blog_index(req):
                 if post.author != "0":
                     gemtext += f"by {post.authorname}"
                 gemtext += "\n--------------------------------------------------\n"
-                gemtext += f"\n\n{md2gemini(post.content_raw)}"
+                content = post.content_raw
+                content = re.sub(r'!\[(.*?)\]\((.*?)\s*=\d+x\d+\)', r'![\1](\2)', content)
+                gemtext += f"\n\n{md2gemini(content)}\n\n"
                 return gemtext
               
             finally:

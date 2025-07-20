@@ -3,7 +3,7 @@ import os
 import json
 import datetime
 import requests
-from openwrite.utils.models import Post, Blog, Home, Settings, Page
+from openwrite.utils.models import Post, Blog, Home, Settings, Page, Like
 import time
 from openwrite import start_time
 
@@ -71,7 +71,7 @@ def instances():
 def discover():
     if g.mode == "single":
         return redirect("/")
-    posts = g.db.query(Post).filter_by(feed=1).order_by(desc(Post.id)).all()
+    posts = g.db.query(Post).filter(Post.feed == "1", Post.isdraft == "0").order_by(desc(Post.id)).all()
     for p in posts:
         b = g.db.query(Blog).filter_by(id=p.blog).first()
         if not b:
@@ -82,6 +82,8 @@ def discover():
             url = f"https://{b.name}.{os.getenv('DOMAIN')}/{p.link}"
         else:
             url = "#"
+        l = g.db.query(Like).filter(Like.post == p.id, Like.blog == b.id).count()
+        p.likes = l
         p.url = url
         p.blogname = b.title
 

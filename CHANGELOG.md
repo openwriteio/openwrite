@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2025-07-20
+### Added
+- Drafts
+
+### Fixed
+- Gemini show page instead of description
+- Gemini show pages published
+- Used could add empty title
+
 ## [0.12.0] - 2025-07-17
 ### Added
 - Create subpages in blog

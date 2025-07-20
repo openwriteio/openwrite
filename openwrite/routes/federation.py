@@ -78,7 +78,100 @@ def activity(blog):
         }
     }
 
-    return Response(json.dumps(actor), content_type="application/activity+json")
+    return Response(json.dumps(actor), content_type="application/activity+json", headers={
+        'Cache-Control': 'max-age=3600',
+        'Vary': 'Accept'
+    })
+
+@federation_bp.route("/activity/<blog>/create/<int:post_id>")
+def activity_create(blog, post_id):
+    b = g.db.query(Blog).filter_by(name=blog).first()
+    if not b:
+        abort(404)
+    
+    post = g.db.query(Post).filter_by(id=post_id, blog=b.id).first()
+    if not post:
+        abort(404)
+
+    if b.access == "path":
+        url = f"https://{g.main_domain}/b/{blog}"
+    else:
+        url = f"https://{blog}.{g.main_domain}"
+
+    dt = datetime.strptime(str(post.date), "%Y-%m-%d %H:%M:%S")
+    dt = dt.replace(tzinfo=timezone.utc)
+    iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+    create_activity = {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "id": f"https://{g.main_domain}/activity/{blog}/create/{post.id}",
+        "type": "Create",
+        "actor": f"https://{g.main_domain}/activity/{blog}",
+        "published": iso,
+        "to": ["https://www.w3.org/ns/activitystreams#Public"],
+        "cc": [f"https://{g.main_domain}/followers/{blog}"],
+        "object": {
+            "id": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+            "type": "Note",
+            "summary": None,
+            "attributedTo": f"https://{g.main_domain}/activity/{blog}",
+            "content": f"<h3>{post.title}</h3><p><a href=\"{url}/{post.link}\">{url}/{post.link}</a></p>",
+            "published": iso,
+            "url": f"{url}/{post.link}",
+            "to": ["https://www.w3.org/ns/activitystreams#Public"],
+            "cc": [f"https://{g.main_domain}/followers/{blog}"],
+            "sensitive": False,
+            "atomUri": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+            "attachment": [],
+            "tag": []
+        }
+    }
+
+    return Response(json.dumps(create_activity), content_type="application/activity+json", headers={
+        'Cache-Control': 'max-age=3600',
+        'Vary': 'Accept'
+    })
+
+@federation_bp.route("/activity/<blog>/posts/<int:post_id>")
+def activity_post(blog, post_id):
+    b = g.db.query(Blog).filter_by(name=blog).first()
+    if not b:
+        abort(404)
+    
+    post = g.db.query(Post).filter_by(id=post_id, blog=b.id).first()
+    if not post:
+        abort(404)
+
+    if b.access == "path":
+        url = f"https://{g.main_domain}/b/{blog}"
+    else:
+        url = f"https://{blog}.{g.main_domain}"
+
+    dt = datetime.strptime(str(post.date), "%Y-%m-%d %H:%M:%S")
+    dt = dt.replace(tzinfo=timezone.utc)
+    iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+    note = {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "id": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+        "type": "Note",
+        "summary": None,
+        "attributedTo": f"https://{g.main_domain}/activity/{blog}",
+        "content": f"<h3>{post.title}</h3><p><a href=\"{url}/{post.link}\">{url}/{post.link}</a></p>",
+        "published": iso,
+        "url": f"{url}/{post.link}",
+        "to": ["https://www.w3.org/ns/activitystreams#Public"],
+        "cc": [f"https://{g.main_domain}/followers/{blog}"],
+        "sensitive": False,
+        "atomUri": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+        "attachment": [],
+        "tag": []
+    }
+
+    return Response(json.dumps(note), content_type="application/activity+json", headers={
+        'Cache-Control': 'max-age=3600',
+        'Vary': 'Accept'
+    })
 
 @federation_bp.route("/inbox/<blog>", methods=["POST"])
 def inbox(blog):
@@ -89,12 +182,6 @@ def inbox(blog):
     data = request.get_json()
     if not data:
         return "Bad Request", 400
-
-    #print(f"""
-    #   Data received:
-
-    #        {data}
-    #""")
 
     body = request.get_data(as_text=True)
     sign = verify_http_signature(request.headers, body, blog)
@@ -190,24 +277,66 @@ def inbox(blog):
 @federation_bp.route("/outbox/<blog>")
 def outbox(blog):
     page = request.args.get("page")
+    
     b = g.db.query(Blog).filter_by(name=blog).first()
     if not b:
         abort(404)
 
-    p = g.db.query(Post).filter_by(blog=b.id)
+    p = g.db.query(Post).filter_by(blog=b.id).order_by(Post.date.desc())
     total = p.count()
     posts = p.all()
+    
     first_outbox = {
       "@context": "https://www.w3.org/ns/activitystreams",
-      "id": f"https://openwrite.io/outbox/{blog}",
+      "id": f"https://{g.main_domain}/outbox/{blog}",
       "type": "OrderedCollection",
       "totalItems": total,
-      "first": f"https://openwrite.io/outbox/{blog}?page=1"
+      "first": f"https://{g.main_domain}/outbox/{blog}?page=true"
     }
 
-    if page not in ("true", "1"):
-        return Response(json.dumps(first_outbox), content_type="application/activity+json")
-
+    if not page:
+        if total <= 10:
+            orderedPosts = []
+            if b.access == "path":
+                url = f"https://{g.main_domain}/b/{blog}"
+            else:
+                url = f"https://{blog}.{g.main_domain}"
+            
+            for post in posts:
+                dt = datetime.strptime(str(post.date), "%Y-%m-%d %H:%M:%S")
+                dt = dt.replace(tzinfo=timezone.utc)
+                iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")   
+                orderedPosts.append({
+                    "id": f"https://{g.main_domain}/activity/{blog}/create/{post.id}",
+                    "type": "Create",
+                    "actor": f"https://{g.main_domain}/activity/{blog}",
+                    "published": iso,
+                    "to": ["https://www.w3.org/ns/activitystreams#Public"],
+                    "cc": [f"https://{g.main_domain}/followers/{blog}"],
+                    "object": {
+                        "id": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+                        "type": "Note",
+                        "attributedTo": f"https://{g.main_domain}/activity/{blog}",
+                        "content": f"<p><strong>{post.title}</strong></p><p><a href=\"{url}/{post.link}\">{url}/{post.link}</a></p>",
+                        "published": iso,
+                        "url": f"{url}/{post.link}",
+                        "to": ["https://www.w3.org/ns/activitystreams#Public"],
+                        "cc": [f"https://{g.main_domain}/followers/{blog}"],
+                        "sensitive": False
+                    }
+                })
+            
+            first_outbox["orderedItems"] = orderedPosts
+            
+            return Response(json.dumps(first_outbox), content_type="application/activity+json; charset=utf-8", headers={
+                'Cache-Control': 'max-age=300',
+                'Vary': 'Accept'
+            })
+        else:
+            return Response(json.dumps(first_outbox), content_type="application/activity+json; charset=utf-8", headers={
+                'Cache-Control': 'max-age=300',
+                'Vary': 'Accept'
+            })
 
     orderedPosts = []
     if b.access == "path":
@@ -219,29 +348,52 @@ def outbox(blog):
         dt = dt.replace(tzinfo=timezone.utc)
         iso = dt.isoformat(timespec="seconds").replace("+00:00", "Z")   
         orderedPosts.append({
-            "id": f"https://{g.main_domain}/activity/{blog}#{post.link}",
+            "id": f"https://{g.main_domain}/activity/{blog}/create/{post.id}",
             "type": "Create",
             "actor": f"https://{g.main_domain}/activity/{blog}",
-            "object": {
-                "id": f"{url}/{post.link}",
-                "type": "Note",
-                "attributedTo": f"https://{g.main_domain}/activity/{blog}",
-                "content": f"<p>{post.title}</p><a href=\"{url}/{post.link}\">{url}/{post.link}</a>",
-                "published": iso
-            },
             "published": iso,
-            "to": ["https://www.w3.org/ns/activitystreams#Public"]
+            "to": ["https://www.w3.org/ns/activitystreams#Public"],
+            "cc": [f"https://{g.main_domain}/followers/{blog}"],
+            "object": {
+                "id": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+                "type": "Note",
+                "summary": None,
+                "attributedTo": f"https://{g.main_domain}/activity/{blog}",
+                "content": f"<h3>{post.title}</h3><p><a href=\"{url}/{post.link}\">{url}/{post.link}</a></p>",
+                "published": iso,
+                "url": f"{url}/{post.link}",
+                "to": ["https://www.w3.org/ns/activitystreams#Public"],
+                "cc": [f"https://{g.main_domain}/followers/{blog}"],
+                "sensitive": False,
+                "atomUri": f"https://{g.main_domain}/activity/{blog}/posts/{post.id}",
+                "attachment": [],
+                "tag": []
+            }
         })
 
     outbox = {
-      "@context": "https://www.w3.org/ns/activitystreams",
-      "id": f"https://openwrite.io/outbox/{blog}?page={page}",
+      "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        {
+          "ostatus": "http://ostatus.org#",
+          "atomUri": "ostatus:atomUri",
+          "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+          "conversation": "ostatus:conversation",
+          "sensitive": "as:sensitive",
+          "toot": "http://joinmastodon.org/ns#",
+          "votersCount": "toot:votersCount"
+        }
+      ],
+      "id": f"https://{g.main_domain}/outbox/{blog}?page={page}",
       "type": "OrderedCollectionPage",
       "partOf": f"https://{g.main_domain}/outbox/{blog}",
       "orderedItems": orderedPosts
     }
 
-    return Response(json.dumps(outbox), content_type="application/activity+json")
+    return Response(json.dumps(outbox), content_type="application/activity+json", headers={
+        'Cache-Control': 'max-age=300',
+        'Vary': 'Accept'
+    })
 
 @federation_bp.route("/followers/<blog>")
 def followers(blog):
@@ -264,7 +416,7 @@ def followers(blog):
             "@context": "https://www.w3.org/ns/activitystreams",
             "id": f"https://{g.main_domain}/followers/{blog}?page=true",
             "type": "OrderedCollectionPage",
-            "partOf": f"https://{g.main_domain}.followers/{blog}",
+            "partOf": f"https://{g.main_domain}/followers/{blog}",
             "totalItems": len(followers),
             "orderedItems": followers
           }

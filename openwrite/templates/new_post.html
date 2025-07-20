@@ -36,8 +36,17 @@
     <input type="checkbox" id="feed" {% if post %} {% if post.feed == "1" %}checked="true"{% endif %} {% else %} checked="true" {% endif %}>
 <label for="feed" style="text-align: left">{{ _('include_in_feed') }}?</label>
 </div>
-    <input type="submit" value="{% if post %}{{ _('save') }}{% else %}{{ _('create') }}{% endif %}" class="btn purple" id="submit">
-</form>
+    {% if not post %}
+    <input type="submit" value="{{ _('save-as-draft') }}" name="draft" id="draft" class="btn empty">
+    {% endif %}
+    <input type="submit" value="{% if post %}{% if post.isdraft == "0" %}{{ _('save') }}{% else %}{{ _('save-draft') }}{% endif %}{% else %}{{ _('create') }}{% endif %}" class="btn purple" id="{% if post %}{% if post.isdraft == "0" %}submit{% else %}draft{% endif %}{% else %}submit{% endif %}">
+    {% if post %}
+    {% if post.isdraft == "1" %}
+    <input type="submit" value="{{ _('publish') }}" class="btn purple" id="submit">
+    {% else %}
+    {% endif %}
+    {% endif %}
+  </form>
 </article>
 <script nonce="{{ g.nonce }}">
     var converter = new showdown.Converter();
@@ -106,7 +115,8 @@
             content_raw: content_raw,
             content: content,
             author: author ? '1' : '0',
-            feed: feed ? '1' : '0'
+            feed: feed ? '1' : '0',
+            draft: '0',
         };
 
         for (let key in inputs) {
@@ -121,6 +131,44 @@
         tempForm.submit();
         document.body.removeChild(tempForm);
     });
+
+    document.getElementById('draft').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const form = document.querySelector('form');
+        const title = form.querySelector('input[name="title"]').value;
+        const content_raw = form.querySelector('textarea[name="content"]').value;
+        const author = form.querySelector("#author").checked;
+        const feed = form.querySelector("#feed").checked;
+
+        const content = "none"
+        const tempForm = document.createElement('form');
+        tempForm.method = 'POST';
+        tempForm.action = '{% if post %}/dashboard/edit/{{ blog.name }}/{{ post.link }}{% else %}/dashboard/post/{{ blog.name }}{% endif %}';
+        const date = new Date();
+        const inputs = {
+            title: title,
+            content_raw: content_raw,
+            content: content,
+            draft: '1',
+            author: author ? '1' : '0',
+            feed: feed ? '1' : '0',
+            content: content,
+        }
+      
+        for (let key in inputs) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = inputs[key];
+            tempForm.appendChild(input);
+        }
+
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+
+      });
 
     const editor = document.querySelector('textarea[name="content"]');
     const uploadLink = document.getElementById("uploadLink");

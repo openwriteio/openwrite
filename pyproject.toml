@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openwrite"
-version = "0.12.0"
+version = "0.13.0"
 license = { file = "LICENSE" }
 dependencies = [
     "flask",
@@ -37,3 +37,6 @@ openwrite = "openwrite.cli:cli"
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["openwrite*"]
