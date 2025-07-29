@@ -389,6 +389,10 @@ i.post-date {
     font-size: 15px;
 }
 
+i.post-date.updated {
+    opacity: 0.5;
+}
+
 article.post-content {
     display: flex;
     flex-direction: column;
@@ -535,6 +539,8 @@ div.postlist_item {
     justify-content: left;
 } .to-center {
     justify-content: center;
+} .space-between {
+    justify-content: space-between;
 }
 
 .post-content#posts {

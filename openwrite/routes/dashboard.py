@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, request, g, abort
+from flask import Blueprint, render_template, redirect, request, g, abort, Response
 from openwrite.utils.models import Blog, Post, User, View, Page
 from openwrite.utils.helpers import sanitize_html, gen_link, safe_css, send_activity, is_html, get_themes
 import requests
@@ -13,6 +13,8 @@ import markdown
 from bs4 import BeautifulSoup
 from user_agents import parse
 import re
+import csv
+from io import StringIO
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -36,7 +38,7 @@ def create_blog():
     if int(g.blog_limit) > 0:
         count = g.db.query(Blog).filter_by(owner=g.user).count()
         if count >= int(g.blog_limit):
-            return render_template("create.html", error="Blog limit reached!")
+            return render_template("create.html", error="blog-limit-reached")
 
     if request.method == "GET":
         return render_template("create.html")
@@ -44,17 +46,17 @@ def create_blog():
     form_name = request.form.get("name")
     form_url = gen_link(request.form.get("url"))
     if len(form_name) > 30:
-        return render_template("create.html", error="Title too long! Max 30 characters.")
+        return render_template("create.html", error="title-too-long")
     if len(form_url) > 30:
-        return render_template("create.html", error="URL too long! Max 30 characters.")
+        return render_template("create.html", error="url-too-long")
     blog = g.db.query(Blog).filter_by(name=form_url).first()
     if blog:
-        return render_template("create.html", error="This URL already exists!")
+        return render_template("create.html", error="url-exists")
     
     form_index = request.form.get("index") or "off"
     form_access = request.form.get("access")
     if form_access not in ("path", "domain"):
-        return render_template("create.html", error="Wrong access!")
+        return render_template("create.html", error="wrong-access")
     
     key = rsa.generate_private_key(
         public_exponent=65537,
@@ -107,7 +109,7 @@ def create_blog():
            
         return redirect("/dashboard")
     except Exception:
-        return render_template("create.html", error=g.trans['error'])
+        return render_template("create.html", error="error")
 
 @dashboard_bp.route("/dashboard/delete/<name>")
 def delete_blog(name):
@@ -118,7 +120,7 @@ def delete_blog(name):
 
     blog = g.db.query(Blog).filter_by(name=name).first()
     if blog is None or blog.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     g.db.delete(blog)
     g.db.commit()
@@ -131,7 +133,7 @@ def edit_blog(name):
 
     blog = g.db.query(Blog).filter_by(name=name).first()
     if blog is None or blog.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     posts = g.db.query(Post).filter_by(blog=blog.id).all()
     for p in posts:
@@ -148,14 +150,14 @@ def edit_blog(name):
 
     now = datetime.now(timezone.utc).replace(microsecond=0)
     if len(request.form.get("title")) > 30:
-        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages, error="Title too long! Max 30 characters.")
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages, error="title-too-long")
     blog.css = safe_css(request.form.get("css"))
     blog.updated = now   
     blog.title = request.form.get("title")
     blog.favicon = request.form.get("icon")[:10]
     selected_theme = request.form.get("theme")
     if selected_theme not in themes:
-        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages, error="Wrong theme!")
+        return render_template("edit.html", blog=blog, posts=posts, themes=themes, pages=pages, error="wrong-theme")
     blog.theme = selected_theme
     g.db.commit()
 
@@ -168,7 +170,7 @@ def new_post(name):
 
     blog = g.db.query(Blog).filter_by(name=name).first()
     if blog is None or blog.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     if request.method == "GET":
         return render_template("new_post.html", blog=blog)
@@ -176,11 +178,11 @@ def new_post(name):
     u = g.db.query(User).filter_by(id=g.user).first()
     title = request.form.get('title')
     if len(title) > 120:
-        return render_template("new_post.html", blog=blog, error="Title too long! Max 120 characters.")
+        return render_template("new_post.html", blog=blog, error="title-too-long")
 
     if len(title) < 1:
-        return render_template("new_post.html", blog=blog, error="Title cannot be empty!")
-        
+        return render_template("new_post.html", blog=blog, error="title-empty")
+
     link = gen_link(title)
     if link == "rss":
         link = "p_rss"
@@ -272,7 +274,7 @@ def blog_preview():
     blog_name = request.referrer.split("/")[-1]
     blog = g.db.query(Blog).filter_by(name=blog_name).first()
     if not blog:
-        return redirect("/")
+        abort(404)
 
     homepage = g.db.query(Page).filter(Page.blog == blog.id, Page.url == "").first()
     data = {
@@ -293,7 +295,7 @@ def edit_post(blog, post):
 
     blog_obj = g.db.query(Blog).filter_by(name=blog).first()
     if blog_obj is None or blog_obj.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     e_post = g.db.query(Post).filter_by(link=post).first()
     if request.method == "GET":
@@ -301,11 +303,11 @@ def edit_post(blog, post):
 
     p = g.db.query(Post).filter_by(link=post, blog=blog_obj.id).first()
     if not p:
-        return redirect("/dashboard")
+        abort(404)
 
     title = request.form.get("title")
     if len(title) > 120:
-        return render_template("new_post.html", blog=blog_obj, error="Title too long! Max 120 characters.")
+        return render_template("new_post.html", blog=blog_obj, error="title-too-long")
     link = gen_link(title)
     if link == "rss":
         link = "p_rss"
@@ -334,7 +336,7 @@ def delete_post(blog, post):
 
     blog_obj = g.db.query(Blog).filter_by(name=blog).first()
     if blog_obj is None or blog_obj.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     p = g.db.query(Post).filter_by(link=post, blog=blog_obj.id).first()
     if p:
@@ -358,14 +360,14 @@ def changepw():
     user = g.db.query(User).filter_by(id=g.user).first()
     if user and bcrypt.checkpw(old_pw.encode('utf-8'), user.password_hash.encode('utf-8')):
         if new_pass != new_pass2:
-            return render_template("changepw.html", error=g.trans['passwords_dont_match'])
+            return render_template("changepw.html", error='passwords_dont_match')
         hashed = bcrypt.hashpw(new_pass.encode('utf-8'), bcrypt.gensalt())
         user.password_hash = hashed
         return redirect("/dashboard")
 
     else:
-        return render_template("changepw.html", error=g.trans['invalid_password'])
-        
+        return render_template("changepw.html", error='invalid_password')
+
 
 @dashboard_bp.route("/dashboard/import", methods=['GET', 'POST'])
 def migrate():
@@ -382,7 +384,7 @@ def migrate():
 
     blog = g.db.query(Blog).filter_by(name=blog_d).first()
     if blog.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     for post in posts:
         title = post['title']
@@ -409,7 +411,7 @@ def stats(blog):
 
     blog = g.db.query(Blog).filter_by(name=blog).first()
     if blog.owner != g.user:
-        return redirect("/dashboard")
+        abort(403)
 
     posts = g.db.query(Post).filter_by(blog=blog.id).all()
 
@@ -464,9 +466,9 @@ def new_page(blog):
     content_html = request.form.get("content")
     show = request.form.get("show")
     if len(name) > 120:
-        return render_template("new_page.html", blog=blog, error="Name too long! Max 120 characters")
+        return render_template("new_page.html", blog=blog, error="name-too-long")
     if not re.match(r"^\/[a-zA-Z0-9\-\_]+$", url):
-        return render_template("new_page.html", blog=blog, error="Invalid URL!")
+        return render_template("new_page.html", blog=blog, error="invalid-url")
 
     url = url[1:]
     if url == "rss":
@@ -511,10 +513,10 @@ def edit_page(page):
     show = request.form.get("show")
     url = request.form.get("url")
     if len(name) > 120:
-        return render_template("new_page.html", blog=blog, page=page, home=home, error="Name too long!")
+        return render_template("new_page.html", blog=blog, page=page, home=home, error="name-too-long")
     if home == False:
         if not re.match(r"^\/[a-zA-Z0-9\-\_]+$", url):
-            return render_template("new_page.html", blog=blog, error="Invalid URL!")
+            return render_template("new_page.html", blog=blog, error="invalid-url")
 
         url = url[1:]
         if url == "rss":
@@ -569,3 +571,43 @@ def page_delete(page):
     g.db.commit()
 
     return redirect(f"/dashboard/edit/{blog.name}")
+
+@dashboard_bp.route("/dashboard/export/<blog>")
+def export_posts(blog):
+    if g.user is None:
+        return redirect("/login")
+
+    blog_obj = g.db.query(Blog).filter_by(name=blog).first()
+    if blog_obj is None or blog_obj.owner != g.user:
+        return redirect("/dashboard")
+
+    posts = g.db.query(Post).filter_by(blog=blog_obj.id).all()
+    
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow(['Title', 'Content Raw', 'Content HTML', 'Author', 'Link', 'Date', 'Updated', 'Feed', 'Is Draft'])
+    
+    for post in posts:
+        writer.writerow([
+            post.title,
+            post.content_raw,
+            post.content_html,
+            post.author,
+            post.link,
+            post.date.isoformat() if post.date else '',
+            post.updated.isoformat() if post.updated else '',
+            post.feed,
+            post.isdraft
+        ])
+    
+    output.seek(0)
+    
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': f'attachment; filename={blog}_posts.csv'
+        }
+    )

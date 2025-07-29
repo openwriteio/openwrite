@@ -1,9 +1,12 @@
 {% include 'header.html' %}
 {% if error %}
-<div class="error">{{ error }}</div>
+<div class="error">{{ _(error) }}</div>
+{% endif %}
+{% if request.args.get('error') %}
+<div class="error">{{ _(request.args.get('error')) }}</div>
 {% endif %}
 {% if message %}
-<div class="message">{{ message }}</div>
+<div class="message">{{ _(message) }}</div>
 {% endif %}
 <h1 class="centered">{% if g.mode == "single" %}{{ _('your_blog') }}{% else %}{{ _('your_blogs') }}{% endif %}</h1>
 {% if g.mode == "multi" %}

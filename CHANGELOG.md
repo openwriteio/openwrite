@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2025-07-29
+### Added
+- Export posts to CSV function
+- Markdown editor: URL button
+- Auto create <a> element from links in posts
+- Remove from discover section as admin
+- More messages for errors instead of redirection
+- Last edited now shown in post
+
+### Fixed
+- Markdown editor now points between special symbols after clicking, not after them
+- Markdown editor in post editing now works properly
+- Random bugs
+
 ## [0.13.0] - 2025-07-20
 ### Added
 - Drafts

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, g, request, make_response
 import json
-from openwrite.utils.models import Blog, User, Settings, Home
+from openwrite.utils.models import Blog, User, Settings, Home, Post
 import re
 import bcrypt
 from werkzeug.utils import secure_filename
@@ -116,16 +116,16 @@ def admin_add_user():
     
     form_username = request.form.get('username')
     if not re.match(r"^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,28}[a-zA-Z0-9])?$", form_username):
-        return render_template('register.html', error=g.trans['wrong_username'], add="1", captcha="0")
+        return render_template('register.html', error='wrong_username', add="1", captcha="0")
     form_password = request.form.get('password')
     form_password2 = request.form.get('password2')
 
     if form_password != form_password2:
-        return render_template("register.html", error=g.trans['password_dont_match'], add="1", captcha="0")
+        return render_template("register.html", error='password_dont_match', add="1", captcha="0")
 
     user = g.db.query(User).filter_by(username=form_username).first()
     if user:
-        return render_template('register.html', error=g.trans["user_exists"], add="1", captcha="0")
+        return render_template('register.html', error="user_exists", add="1", captcha="0")
 
     try: 
         hashed = bcrypt.hashpw(form_password.encode('utf-8'), bcrypt.gensalt())
@@ -136,7 +136,7 @@ def admin_add_user():
     except Exception as e:
         print(e)
         g.db.rollback()
-        return render_template('register.html', error=g.trans["error"], add="1", captcha="0")
+        return render_template('register.html', error='error', add="1", captcha="0")
 
 
 @admin_bp.route("/admin/settings", methods=['GET', 'POST'])
@@ -166,17 +166,17 @@ def admin_settings():
         file = request.files['logo']
         filename = secure_filename(file.filename)
         if "." not in filename:
-            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="Wrong file!")
+            return render_template("settings.html", settings=settings_dict, hometext=hometext, error='invalid_filename')
 
         extension = filename.rsplit('.', 1)[1].lower()
         if extension not in ALLOWED_EXTENSIONS:
-            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="Wrong extension!")
+            return render_template("settings.html", settings=settings_dict, hometext=hometext, error='unsupported_filetype')
 
         try:
             img = Image.open(file.stream)
             img.verify()
         except Exception:
-            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="File is not image!")
+            return render_template("settings.html", settings=settings_dict, hometext=hometext, error="not_image")
 
         file.stream.seek(0)
 
@@ -246,3 +246,18 @@ def download_translations():
     response.headers["Content-Disposition"] = "attachment; filename=i18n.json"
     response.headers["Content-Type"] = "application/json"
     return response
+
+@admin_bp.route("/admin/remove_from_feed/<int:post_id>")
+def remove_from_feed(post_id):
+    """
+    Remove a post from the discover feed.
+    """
+    if g.user is None or g.isadmin == 0 or g.mode == "single":
+        return redirect("/")
+
+    post = g.db.query(Post).filter_by(id=post_id).first()
+    if post:
+        post.feed = "0"
+        g.db.commit()
+
+    return redirect("/discover")

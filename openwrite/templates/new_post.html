@@ -1,6 +1,12 @@
 {% include 'header.html' %}
 {% if error %}
-<div class="error">{{ error }}</div>
+<div class="error">{{ _(error) }}</div>
+{% endif %}
+{% if request.args.get('error') %}
+<div class="error">{{ _(request.args.get('error')) }}</div>
+{% endif %}
+{% if message %}
+<div class="message">{{ _(message) }}</div>
 {% endif %}
 <div><a href="/dashboard" class="action">Dashboard</a> > <a href="/dashboard/edit/{{ blog.name }}" class="action">{{ blog.title }}</a> > {% if post %}{{ post.title }}{% else %}{{ _('new_post') }}{% endif %}</div>
 <div class="container-row-fluid">
@@ -11,15 +17,16 @@
 <form method="post" action="{% if post %}/dashboard/edit/{{ blog.name }}/{{ post.link }}{% else %}/dashboard/post/{{ blog.name }}{% endif %}">
     <input type="text" name="title" placeholder="{{ _('title') }}" style="max-width: 100%; height: 50px; font-size: 25px; margin-bottom: 1rem;" value="{% if post %}{{ post.title }}{% endif %}">
     <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
-        <a href="#" class="small btn empty" data-action="h1">H1</a>
-        <a href="#" class="small btn empty" data-action="h2">H2</a>
-        <a href="#" class="small btn empty" data-action="h3">H3</a>
-        <a href="#" class="small btn empty" data-action="bold"><b>B</b></a>
-        <a href="#" class="small btn empty" data-action="italic"><i>I</i></a>
-        <a href="#" class="small btn empty" data-action="underline"><u>U</u></a>
-        <a href="#" class="small btn empty" data-action="strikethrough"><del>C</del></a>
-        <a href="#" class="small btn empty" data-action="quote">Q</a>
-        <a href="https://main.openwrite.io/markdown-syntax" style="text-decoration: none; color: #eeeeee; margin-left: auto" target="_blank">Markdown syntax</a>
+        <a href="#" class="small btn empty" data-action="h1" title="Heading 1">H1</a>
+        <a href="#" class="small btn empty" data-action="h2" title="Heading 2">H2</a>
+        <a href="#" class="small btn empty" data-action="h3" title="Heading 3">H3</a>
+        <a href="#" class="small btn empty" data-action="bold" title="Bold text"><b>B</b></a>
+        <a href="#" class="small btn empty" data-action="italic" title="Italic text"><i>I</i></a>
+        <a href="#" class="small btn empty" data-action="underline" title="Underlined text"><u>U</u></a>
+        <a href="#" class="small btn empty" data-action="strikethrough" title="Strikethrough text"><del>C</del></a>
+        <a href="#" class="small btn empty" data-action="quote" title="Quote/Blockquote">Q</a>
+        <a href="#" class="small btn empty" data-action="link" title="Insert link">🔗</a>
+        <a href="https://main.openwrite.io/markdown-syntax" style="text-decoration: none; color: #eeeeee; margin-left: auto" target="_blank" title="View Markdown syntax guide">Markdown syntax</a>
     </div>
     <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="content" class="post_content" placeholder="{{ _('content') }}">{% if post %}{{ post.content_raw }}{% endif %}</textarea>
     <div style="display: flex; justify-content: space-between">
@@ -40,6 +47,7 @@
     <input type="submit" value="{{ _('save-as-draft') }}" name="draft" id="draft" class="btn empty">
     {% endif %}
     <input type="submit" value="{% if post %}{% if post.isdraft == "0" %}{{ _('save') }}{% else %}{{ _('save-draft') }}{% endif %}{% else %}{{ _('create') }}{% endif %}" class="btn purple" id="{% if post %}{% if post.isdraft == "0" %}submit{% else %}draft{% endif %}{% else %}submit{% endif %}">
+    {% if post %}{% if post.isdraft == "0" %}<input type="hidden" id="draft">{% endif %}{% endif %}
     {% if post %}
     {% if post.isdraft == "1" %}
     <input type="submit" value="{{ _('publish') }}" class="btn purple" id="submit">
@@ -52,10 +60,10 @@
     var converter = new showdown.Converter();
     converter.setOption('emoji', true);
     converter.setOption('noHeaderId', true);
-    converter.setOption('openLinksInNewWindow', true);
     converter.setOption('tables', true);
     converter.setOption('tasklists', true);
     converter.setOption('strikethrough', true);
+    converter.setOption('simplifiedAutoLink', true);
 
     document.getElementById('preview').addEventListener('click', function(e) {
         e.preventDefault();
@@ -219,34 +227,61 @@ document.querySelectorAll('[data-action]').forEach(btn => {
     const selected = editor.value.slice(start, end);
 
     let modified = selected;
+    let cursorOffset = 0;
+    
     switch (action) {
       case "bold":
         modified = `**${selected}**`;
+        cursorOffset = selected ? 0 : 2;
         break;
       case "italic":
         modified = `*${selected}*`;
+        cursorOffset = selected ? 0 : 1;
         break;
       case "underline":
         modified = `<u>${selected}</u>`; 
+        cursorOffset = selected ? 0 : 3;
         break;
       case "strikethrough":
         modified = `~~${selected}~~`;
+        cursorOffset = selected ? 0 : 2;
         break;
       case "quote":
         modified = selected.split("\n").map(line => `> ${line}`).join("\n");
+        cursorOffset = selected ? 0 : 2;
         break;
       case "h1":
         modified = `# ${selected}`;
+        cursorOffset = selected ? 0 : 2;
         break;
       case "h2":
         modified = `## ${selected}`;
+        cursorOffset = selected ? 0 : 3;
         break;
       case "h3":
         modified = `### ${selected}`;
+        cursorOffset = selected ? 0 : 4;
+        break;
+      case "link":
+        const url = prompt("Enter the URL:");
+        if (url) {
+          if (selected) {
+        modified = `[${selected}](${url})`;
+        cursorOffset = 0;
+          } else {
+        modified = `[link description](${url})`;
+        cursorOffset = 1;
+          }
+        }
         break;
     }
 
     editor.setRangeText(modified, start, end, "end");
+    
+    if (!selected && cursorOffset > 0) {
+      editor.selectionStart = editor.selectionEnd = start + cursorOffset;
+    }
+    
     editor.focus();
   });
 });

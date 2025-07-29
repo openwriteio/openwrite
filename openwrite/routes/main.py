@@ -96,7 +96,7 @@ def show_instance():
     blog_count = g.db.query(Blog).count()
     user_count = g.db.query(User).count()
     return {
-        "version": os.getenv("VERSION"),
+        "version": "0.13.1",
         "blogs": blog_count,
         "users": user_count,
         "uptime": int(time.time() - int(start_time)),
