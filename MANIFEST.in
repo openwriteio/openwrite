@@ -1,6 +1,0 @@
-include openwrite/utils/i18n.json
-recursive-include openwrite/templates *
-recursive-include openwrite/static *
-exclude logs/*
-exclude gemini/*
-exclude uploads/*
